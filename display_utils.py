@@ -39,3 +39,12 @@ def show_window(x, y, width, height):
 			im_pixels[row_index, col_index] = tuple(pixel)
 	im.show()
 
+def get_num_cards_in_hand():
+	"""Checks how many cards in player's hand"""
+	pixel_array_bytes = get_pixel_array_bytes(255, 500, 240, 1)
+	pixels = [pixel_array_bytes[i*3:(i+1)*3] for i in range(240)]
+	green_pixels = pixels.count(b'\x00\xff\x00')
+	cards_gone = int(green_pixels / 15)
+	return 13 - cards_gone
+
+
