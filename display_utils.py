@@ -13,6 +13,10 @@ def get_pixel_array_bytes(x, y, width, height):
 	pixbuf = Gdk.pixbuf_get_from_window(WINDOW, x, y, width, height)
 	return pixbuf.get_pixels()
 
+def get_pixel(x, y):
+	"""Gets a single pixel from screen"""
+	return get_pixel_array_bytes(x, y, 1, 1)
+
 def show_window(x, y, width, height):
 	"""Returns list of rows of pixel hexs in window"""
 	pixel_array_bytes = get_pixel_array_bytes(x, y, width, height)
