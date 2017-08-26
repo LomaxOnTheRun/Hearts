@@ -3,7 +3,7 @@ gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk
 
 from PIL import Image
-from fuzzywuzzy import fuzz
+#from fuzzywuzzy import fuzz
 
 
 # NOTES ABOUT THIS CODE:
@@ -12,6 +12,10 @@ from fuzzywuzzy import fuzz
 # - The window must be placed in the top right corner of the screen
 # - Ubunutu's side bar must be hidden
 # - The background colour must be changed to pure green (0, 255, 0)
+#
+# - I've taken out fuzzywuzzy matching to stop the warning coming up
+#   I think it should work like this anyway, but if it can't recognise
+#   cards any more, put it back in
 
 
 WINDOW = Gdk.get_default_root_window()
@@ -74,8 +78,9 @@ def get_best_key(pixel_array):
 	max_ratio = 0
 	for key in CARD_VALUES:
 		value = CARD_VALUES[key]
-		ratio = fuzz.ratio(pixel_array, value)
-		if ratio > max_ratio:
+		#ratio = fuzz.ratio(pixel_array, value)
+		#if ratio > max_ratio:
+		if pixel_array == value:
 			max_ratio = ratio
 			best_key = key
 	return best_key
