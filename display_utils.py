@@ -5,12 +5,18 @@ from gi.repository import Gdk
 from PIL import Image
 
 
+WINDOW = Gdk.get_default_root_window()
+
+
+def get_pixel_array_bytes(x, y, width, height):
+	"""Gets the bytes from the pixel array selected"""
+	pixbuf = Gdk.pixbuf_get_from_window(WINDOW, x, y, width, height)
+	return pixbuf.get_pixels()
+
 def show_window(x, y, width, height):
 	"""Returns list of rows of pixel hexs in window"""
-	window = Gdk.get_default_root_window()
-	pixbuf = Gdk.pixbuf_get_from_window(window, x, y, width, height)
-	pixels_byte = pixbuf.get_pixels()
-	pixels_hex = pixels_byte.hex()
+	pixel_array_bytes = get_pixel_array_bytes(x, y, width, height)
+	pixels_hex = pixel_array_bytes.hex()
 	# Calculate num. of alpha pixels
 	total_overhang = len(pixels_hex) - (width * height * 6)
 	row_overhang = int(total_overhang / (height - 1))
