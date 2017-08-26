@@ -6,6 +6,14 @@ from PIL import Image
 from fuzzywuzzy import fuzz
 
 
+# NOTES ABOUT THIS CODE:
+# - It works for Ubuntu 16.04 Hearts
+# - The window must be at the default size
+# - The window must be placed in the top right corner of the screen
+# - Ubunutu's side bar must be hidden
+# - The background colour must be changed to pure green (0, 255, 0)
+
+
 WINDOW = Gdk.get_default_root_window()
 PLAYER_HAND_X0 = 255
 PLAYER_HAND_Y0 = 477
