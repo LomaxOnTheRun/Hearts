@@ -43,15 +43,15 @@ class Player:
 				self.lead = False
 				return self.hand.pop(index)
 	
-	def get_legal_moves(self, trick, hearts_broken, first_trick=False):
+	def get_legal_moves(self, trick, game_data):
 		hand_codes = self.get_hand_codes()
 		# If lead
 		if self.lead:
 			# Lead with C2 as first card of game
-			if first_trick:
+			if game_data['first_trick']:
 				return ['C2']
 			# If hearts are broken, play whatever
-			elif hearts_broken:
+			elif game_data['hearts_broken']:
 				return hand_codes
 			# If hearts are unbroken, play anything else
 			else:
@@ -64,6 +64,11 @@ class Player:
 			if not legal_moves:
 				return hand_codes
 			return legal_moves
+	
+	def get_random_legal_card_to_play(self, trick, game_data):
+		legal_moves = self.get_legal_moves(trick, game_data)
+		card_to_play = legal_moves[randint(0, len(legal_moves)-1)]
+		return card_to_play
 
 
 def shuffle_and_deal_cards():
@@ -88,24 +93,37 @@ def put_players_in_turn_order(players):
 	while players[0].lead == False:
 		players.append(players.pop(0))
 
-
-def play_trick(players, hearts_broken, first_trick=False, show_play=False):
-	trick = []
+def get_player(players, id_val):
+	"""Return player with specified id_val"""
 	for player in players:
-		legal_moves = player.get_legal_moves(trick, hearts_broken, first_trick=first_trick)
-		card_to_play = legal_moves[randint(0, len(legal_moves)-1)]  # For now, play randomly
-		if show_play:
+		if player.id_val == id_val:
+			return player
+
+def split_players(players):
+	"""Split players into those before you, you, and after you"""
+	player0 = get_player(players, 0)
+	player0_index = players.index(player0)
+	players_before = players[:player0_index]
+	players_after = players[player0_index+1:]
+	return players_before, player0, players_after
+
+def play_trick_for_players(players, game_data, trick):
+	"""Play the trick for a subgroup of players"""
+	for player in players:
+		# For now, play randomly
+		card_to_play = player.get_random_legal_card_to_play(trick, game_data)
+		if game_data['show_play']:
 			print(card_to_play + ' ' + str(player.get_hand_codes()))
 		card = player.play(card_to_play)
 		trick.append(card)
 	return trick
 
-def is_hearts_broken(trick):
+def update_hearts_broken(game_data, trick):
 	"""Check if hearts have been broken"""
-	for card in trick:
-		if card.suit is 'H':
-			return True
-	return False
+	if not game_data['hearts_broken']:
+		for card in trick:
+			if card.suit is 'H':
+				game_data['hearts_broken'] = True
 
 def give_trick_points(players, trick):
 	"""Give winner of trick points and the lead"""
@@ -122,13 +140,39 @@ def give_trick_points(players, trick):
 
 def show_final_scores(players):
 	"""Print out final scores"""
-	for player in players:
-		if player.id_val == 0:
-			player.lead = True
-	put_players_in_turn_order(players)
+	while players[0].id_val is not 0:
+		players.append(players.pop(0))
 	print('Final scores:')
 	for player in players:
 		print('player{} - {}'.format(player.id_val, player.points))
+
+def set_up_game():
+	players = shuffle_and_deal_cards()
+	set_first_lead(players)
+	# Create dict for misc. game data
+	game_data = {
+		'show_play': True,
+		'hearts_broken': False,
+		'first_trick': True,
+	}
+	return players, game_data
+
+def start_trick(players, game_data):
+	"""Start trick, including prep"""
+	put_players_in_turn_order(players)
+	players_before, player0, players_after = split_players(players)
+	trick = play_trick_for_players(players_before, game_data, [])
+	return trick
+
+def finish_trick(players, game_data, trick):
+	"""Finish trick including points and next lead"""
+	players_before, player0, players_after = split_players(players)
+	trick = play_trick_for_players(players_after, game_data, trick)
+	update_hearts_broken(game_data, trick)
+	give_trick_points(players, trick)
+	if game_data['show_play']:
+		print('Trick: {}\n'.format([card.code for card in trick]))
+	game_data['first_trick'] = False
 
 
 

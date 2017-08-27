@@ -7,33 +7,26 @@ from game import *
 #   - Keep track of more history (other player scores / previously tricks)
 # - I'm not passing cards across at the start of hands (more complex)
 
-# Set to true for logging
-show_play = True
 
-# Hearts have to be broken before they can be played
-hearts_broken = False
+def do_player0_turn(players, game_data, trick):
+	"""Lets you play your card"""
+	player0 = get_player(players, 0)
+	#player0_card_code = input('This is your hand:\n{}\nCard to play: '.format(player0.get_hand_codes()))
+	card_code = player0.get_random_legal_card_to_play(trick, game_data)
+	card = player0.play(card_code)
+	trick.append(card)
 
-players = shuffle_and_deal_cards()
-set_first_lead(players)
-put_players_in_turn_order(players)
 
-# First trick
-trick = play_trick(players, hearts_broken, first_trick=True, show_play=show_play)
-hearts_broken = is_hearts_broken(trick)
-give_trick_points(players, trick)
-if show_play:
-	print()
+# Game setup
+players, game_data = set_up_game()
 
-# Finish game
+# Play game out
 while players[0].hand:
-	put_players_in_turn_order(players)
-	trick = play_trick(players, hearts_broken, show_play=show_play)
-	if not hearts_broken:
-		hearts_broken = is_hearts_broken(trick)
-	give_trick_points(players, trick)
-	if show_play:
-		print()
+	trick = start_trick(players, game_data)
+	do_player0_turn(players, game_data, trick)
+	finish_trick(players, game_data, trick)
 
+# Show final scores
 show_final_scores(players)
 
 
