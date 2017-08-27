@@ -65,3 +65,76 @@ class Player:
 				return hand_codes
 			return legal_moves
 
+
+def shuffle_and_deal_cards():
+	"""Shuffle and deal cards"""
+	players = [Player(i) for i in range(4)]
+	deck = [Card(suit, value_str) for suit in SUITS for value_str in VALUES]
+	shuffle(deck)
+	for player in players:
+		player.hand = deck[:13]
+		del deck[:13]
+	return players
+
+def set_first_lead(players):
+	"""Find first player to start game with C2"""
+	for player in players:
+		if 'C2' in player.get_hand_codes():
+			player.lead = True
+			break
+
+def put_players_in_turn_order(players):
+	"""Put players in correct turn order"""
+	while players[0].lead == False:
+		players.append(players.pop(0))
+
+
+def play_trick(players, hearts_broken, first_trick=False, show_play=False):
+	trick = []
+	for player in players:
+		legal_moves = player.get_legal_moves(trick, hearts_broken, first_trick=first_trick)
+		card_to_play = legal_moves[randint(0, len(legal_moves)-1)]  # For now, play randomly
+		if show_play:
+			print(card_to_play + ' ' + str(player.get_hand_codes()))
+		card = player.play(card_to_play)
+		trick.append(card)
+	return trick
+
+def is_hearts_broken(trick):
+	"""Check if hearts have been broken"""
+	for card in trick:
+		if card.suit is 'H':
+			return True
+	return False
+
+def give_trick_points(players, trick):
+	"""Give winner of trick points and the lead"""
+	winner = 0
+	lead_suit = trick[0].suit
+	max_value = 0
+	for index, card in enumerate(trick):
+		if card.value > max_value:
+			max_value = card.value
+			winner = index
+	points = sum([card.points for card in trick])
+	players[winner].points += points
+	players[winner].lead = True
+
+def show_final_scores(players):
+	"""Print out final scores"""
+	for player in players:
+		if player.id_val == 0:
+			player.lead = True
+	put_players_in_turn_order(players)
+	print('Final scores:')
+	for player in players:
+		print('player{} - {}'.format(player.id_val, player.points))
+
+
+
+
+
+
+
+
+
