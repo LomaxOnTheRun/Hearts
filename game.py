@@ -1,4 +1,4 @@
-from random import shuffle, randint
+from random import shuffle, randint, choice
 
 
 SUITS = ['C', 'D', 'S', 'H']
@@ -11,6 +11,7 @@ class Card:
 		self.value = self.get_value(value_str)
 		self.points = self.get_points()
 		self.code = suit + value_str
+		self.sort_value = 100*SUITS.index(suit) + VALUES.index(value_str)
 	
 	def get_value(self, value_str):
 		royals = {'J': 11, 'Q': 12, 'K': 13, 'A': 14}
@@ -53,6 +54,9 @@ class Player:
 			# If hearts are broken, play whatever
 			elif game_data['hearts_broken']:
 				return hand_codes
+			# Or if you only have hearts, play whatever
+			elif all([code[0] == 'H' for code in hand_codes]):
+				return hand_codes
 			# If hearts are unbroken, play anything else
 			else:
 				return [code for code in hand_codes if code[0] is not 'H']
@@ -60,6 +64,9 @@ class Player:
 		else:
 			lead_card = trick[0]
 			legal_moves = [code for code in hand_codes if code[0] is lead_card.suit]
+			# Don't play queen on first move
+			if game_data['first_trick'] and 'SQ' in legal_moves:
+				legal_moves.remove('SQ')
 			# If can't follow suit, play whatever
 			if not legal_moves:
 				return hand_codes
@@ -67,8 +74,18 @@ class Player:
 	
 	def get_random_legal_card_to_play(self, trick, game_data):
 		legal_moves = self.get_legal_moves(trick, game_data)
-		card_to_play = legal_moves[randint(0, len(legal_moves)-1)]
+		if not legal_moves:
+			print([card.code for card in trick])
+			print(self.get_hand_codes())
+		card_to_play = choice(legal_moves)
 		return card_to_play
+	
+	def sort_hand(self):
+		sort_values = [card.sort_value for card in self.hand]
+		while sort_values:
+			min_index = sort_values.index(min(sort_values))
+			self.hand.append(self.hand.pop(min_index))
+			del sort_values[min_index]
 
 
 def shuffle_and_deal_cards():
@@ -79,6 +96,7 @@ def shuffle_and_deal_cards():
 	for player in players:
 		player.hand = deck[:13]
 		del deck[:13]
+		player.sort_hand()
 	return players
 
 def set_first_lead(players):
@@ -126,7 +144,7 @@ def update_hearts_broken(game_data, trick):
 				game_data['hearts_broken'] = True
 
 def give_trick_points(players, trick):
-	"""Give winner of trick points and the lead"""
+	"""Give winner of trick points and the lead, return player0 points"""
 	winner = 0
 	lead_suit = trick[0].suit
 	max_value = 0
@@ -137,21 +155,29 @@ def give_trick_points(players, trick):
 	points = sum([card.points for card in trick])
 	players[winner].points += points
 	players[winner].lead = True
+	if players[winner].id_val == 0:
+		return points
+	else:
+		return 0
+
+def reset_player_order(players):
+	while players[0].id_val is not 0:
+		players.append(players.pop(0))
 
 def show_final_scores(players):
 	"""Print out final scores"""
-	while players[0].id_val is not 0:
-		players.append(players.pop(0))
+	reset_player_order(players)
 	print('Final scores:')
 	for player in players:
 		print('player{} - {}'.format(player.id_val, player.points))
 
-def set_up_game():
+def set_up_game(game_num, show_play):
 	players = shuffle_and_deal_cards()
 	set_first_lead(players)
 	# Create dict for misc. game data
 	game_data = {
-		'show_play': True,
+		'game_num': game_num,
+		'show_play': show_play,
 		'hearts_broken': False,
 		'first_trick': True,
 	}
@@ -160,19 +186,22 @@ def set_up_game():
 def start_trick(players, game_data):
 	"""Start trick, including prep"""
 	put_players_in_turn_order(players)
-	players_before, player0, players_after = split_players(players)
+	players_before, _, _ = split_players(players)
 	trick = play_trick_for_players(players_before, game_data, [])
 	return trick
 
-def finish_trick(players, game_data, trick):
+def finish_trick(players, game_data, trick, player0_choice):
 	"""Finish trick including points and next lead"""
-	players_before, player0, players_after = split_players(players)
+	_, player0, players_after = split_players(players)
+	player0_card = player0.play(player0_choice)
+	trick.append(player0_card)
 	trick = play_trick_for_players(players_after, game_data, trick)
 	update_hearts_broken(game_data, trick)
-	give_trick_points(players, trick)
+	player0_points = give_trick_points(players, trick)
 	if game_data['show_play']:
 		print('Trick: {}\n'.format([card.code for card in trick]))
 	game_data['first_trick'] = False
+	return player0_points
 
 
 
