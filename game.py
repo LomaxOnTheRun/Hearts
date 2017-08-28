@@ -2,15 +2,16 @@ from random import shuffle, randint, choice
 
 
 SUITS = ['C', 'D', 'S', 'H']
+#SUITS = ['S', 'H']
 VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
-
+#VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 
 class Card:
 	def __init__(self, suit, value_str):
 		self.suit = suit
 		self.value = self.get_value(value_str)
-		self.points = self.get_points()
 		self.code = suit + value_str
+		self.points = self.get_points()
 		self.sort_value = 100*SUITS.index(suit) + VALUES.index(value_str)
 	
 	def get_value(self, value_str):
@@ -21,7 +22,7 @@ class Card:
 			return int(value_str)
 	
 	def get_points(self):
-		if self.suit == 'S' and self.value == 12:
+		if self.code == 'SQ':
 			return 13
 		elif self.suit == 'H':
 			return 1
@@ -50,7 +51,8 @@ class Player:
 		if self.lead:
 			# Lead with C2 as first card of game
 			if game_data['first_trick']:
-				return ['C2']
+				#return ['C2']
+				return [SUITS[0] + VALUES[0]]
 			# If hearts are broken, play whatever
 			elif game_data['hearts_broken']:
 				return hand_codes
@@ -93,16 +95,19 @@ def shuffle_and_deal_cards():
 	players = [Player(i) for i in range(4)]
 	deck = [Card(suit, value_str) for suit in SUITS for value_str in VALUES]
 	shuffle(deck)
+	hand_size = int((len(SUITS) * len(VALUES)) / 4)
 	for player in players:
-		player.hand = deck[:13]
-		del deck[:13]
+		player.hand = deck[:hand_size]
+		del deck[:hand_size]
 		player.sort_hand()
 	return players
 
 def set_first_lead(players):
 	"""Find first player to start game with C2"""
 	for player in players:
-		if 'C2' in player.get_hand_codes():
+		#if 'C2' in player.get_hand_codes():
+		lowest_card = SUITS[0] + VALUES[0]
+		if lowest_card in player.get_hand_codes():
 			player.lead = True
 			break
 
