@@ -176,15 +176,16 @@ def show_final_scores(players):
 	for player in players:
 		print('player{} - {}'.format(player.id_val, player.points))
 
-def set_up_game(game_num, show_play):
+def set_up_game(game_num):
 	players = shuffle_and_deal_cards()
 	set_first_lead(players)
 	# Create dict for misc. game data
 	game_data = {
 		'game_num': game_num,
-		'show_play': show_play,
+		'show_play': False,
 		'hearts_broken': False,
 		'first_trick': True,
+		'show_Q_values': False,
 	}
 	return players, game_data
 

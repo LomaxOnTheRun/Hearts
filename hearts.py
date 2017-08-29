@@ -37,8 +37,6 @@ def get_Q_key(state_str, action):
 def get_Q_value(Q, key, game_data=False):
 	"""Return Q value if exists, otherwise create one"""
 	if key in Q:
-		#if game_data:
-		#	print('Value seen before: {} ({})'.format(key, game_data['game_num']))
 		return Q[key]
 	else:
 		Q[key] = 0
@@ -49,14 +47,14 @@ def get_state_str(trick, players, game_data):
 	legal_moves = player0.get_legal_moves(trick, game_data)
 	# For the debug version, tricks can just be ordered,
 	# since we're only playing with hearts
-	#return ''.join([card.code for card in trick]) + '_' + ''.join(legal_moves)
-	trick_copy = list(trick)
-	sort_values = [card.sort_value for card in trick_copy]
-	while sort_values:
-		min_index = sort_values.index(min(sort_values))
-		trick_copy.append(trick_copy.pop(min_index))
-		del sort_values[min_index]
-	return ''.join([card.code for card in trick_copy]) + '_' + ''.join(legal_moves)
+	return ''.join([card.code for card in trick]) + '_' + ''.join(legal_moves)
+	#trick_copy = list(trick)
+	#sort_values = [card.sort_value for card in trick_copy]
+	#while sort_values:
+	#	min_index = sort_values.index(min(sort_values))
+	#	trick_copy.append(trick_copy.pop(min_index))
+	#	del sort_values[min_index]
+	#return ''.join([card.code for card in trick_copy]) + '_' + ''.join(legal_moves)
 
 def get_reward(player0_points):
 	"""Get reward from trick"""
@@ -77,11 +75,10 @@ def update_Q(Q, old_state_str, old_action, learning_rate, reward, discount_facto
 	# Get new Q value
 	new_Q_value = old_Q_value + learning_rate * (reward + discount_factor * max_next_Q_value - old_Q_value)
 	Q[old_Q_key] = new_Q_value
-	#print('{}:\t{} -> {}'.format(old_Q_key, old_Q_value, new_Q_value))
 	if game_data['show_Q_values']:
 		print('{} -> {}'.format(old_Q_key, new_Q_value))
 
-# Debug
+### Debug ###
 
 def show_hands(players):
 	for player in players:
@@ -95,19 +92,17 @@ learning_rate = 0.5#0.1
 discount_factor = 0.9
 
 scores = [0, 0, 0, 0]
-for game_num in range(1000000):
+for game_num in range(10000000):
 	
 	# Game setup
-	players, game_data = set_up_game(game_num, show_play=False)
-	#game_data['hearts_broken'] = True  # Debug
-	game_data['show_Q_values'] = False
+	players, game_data = set_up_game(game_num)
 
 	#show_hands(players)
 	#print(game_num)
+	
 	if game_num % 10000 == 0:
 		print('\n#{} - {}'.format(game_num, scores))
 		scores = [0, 0, 0, 0]
-		#game_data['show_Q_values'] = True
 	else:
 		game_data['show_Q_values'] = False
 
@@ -151,9 +146,9 @@ for game_num in range(1000000):
 
 	# Show final scores
 	#show_final_scores(players)
-	reset_player_order(players)
-	for i, player in enumerate(players):
-		scores[i] += player.points
+	#reset_player_order(players)
+	#for i, player in enumerate(players):
+	#	scores[i] += player.points
 	#print(scores)
 	
 
