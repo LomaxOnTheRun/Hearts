@@ -1,10 +1,10 @@
 from random import shuffle, randint, choice
 
 
-SUITS = ['C', 'D', 'S', 'H']
-#SUITS = ['S', 'H']
-VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
-#VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+#SUITS = ['C', 'D', 'S', 'H']
+SUITS = ['H']
+#VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 
 class Card:
 	def __init__(self, suit, value_str):
@@ -12,7 +12,7 @@ class Card:
 		self.value = self.get_value(value_str)
 		self.code = suit + value_str
 		self.points = self.get_points()
-		self.sort_value = 100*SUITS.index(suit) + VALUES.index(value_str)
+		self.sort_value = 100 * SUITS.index(suit) + VALUES.index(value_str)
 	
 	def get_value(self, value_str):
 		royals = {'J': 11, 'Q': 12, 'K': 13, 'A': 14}

@@ -47,14 +47,17 @@ def get_state_str(trick, players, game_data):
 	legal_moves = player0.get_legal_moves(trick, game_data)
 	# For the debug version, tricks can just be ordered,
 	# since we're only playing with hearts
-	return ''.join([card.code for card in trick]) + '_' + ''.join(legal_moves)
-	#trick_copy = list(trick)
-	#sort_values = [card.sort_value for card in trick_copy]
-	#while sort_values:
-	#	min_index = sort_values.index(min(sort_values))
-	#	trick_copy.append(trick_copy.pop(min_index))
-	#	del sort_values[min_index]
-	#return ''.join([card.code for card in trick_copy]) + '_' + ''.join(legal_moves)
+	# Actually, since the first card already influences our legal
+	# moves, we can just order all of the cards in the trick to give
+	# us fewer states
+	#return ''.join([card.code for card in trick]) + '_' + ''.join(legal_moves)
+	trick_copy = list(trick)
+	sort_values = [card.sort_value for card in trick_copy]
+	while sort_values:
+		min_index = sort_values.index(min(sort_values))
+		trick_copy.append(trick_copy.pop(min_index))
+		del sort_values[min_index]
+	return ''.join([card.code for card in trick_copy]) + '_' + ''.join(legal_moves)
 
 def get_reward(player0_points):
 	"""Get reward from trick"""
@@ -96,7 +99,8 @@ for game_num in range(10000000):
 	
 	# Game setup
 	players, game_data = set_up_game(game_num)
-
+	
+	#game_data['show_Q_values'] = True
 	#show_hands(players)
 	#print(game_num)
 	
@@ -146,9 +150,9 @@ for game_num in range(10000000):
 
 	# Show final scores
 	#show_final_scores(players)
-	#reset_player_order(players)
-	#for i, player in enumerate(players):
-	#	scores[i] += player.points
+	reset_player_order(players)
+	for i, player in enumerate(players):
+		scores[i] += player.points
 	#print(scores)
 	
 
