@@ -93,12 +93,12 @@ class Player:
 			del sort_values[min_index]
 
 
-def shuffle_and_deal_cards():
+def shuffle_and_deal_cards(num_players):
 	"""Shuffle and deal cards"""
-	players = [Player(i) for i in range(4)]
+	players = [Player(i) for i in range(num_players)]
 	deck = [Card(suit, value_str) for suit in SUITS for value_str in VALUES]
 	shuffle(deck)
-	hand_size = int((len(SUITS) * len(VALUES)) / 4)
+	hand_size = int((len(SUITS) * len(VALUES)) / num_players)
 	for player in players:
 		player.hand = deck[:hand_size]
 		del deck[:hand_size]
@@ -189,8 +189,8 @@ def show_final_scores(players):
 		print('player{} - {}'.format(player.id_val, player.points))
 
 
-def set_up_game(game_num):
-	players = shuffle_and_deal_cards()
+def set_up_game(game_num, num_players):
+	players = shuffle_and_deal_cards(num_players)
 	set_first_lead(players)
 	# Create dict for misc. game data
 	game_data = {

@@ -42,20 +42,23 @@ def show_hands(players):
 Q = {}
 
 # Set some variables
+num_players = 2
 learning_rate = 0.5#0.1
 discount_factor = 0.9
 
-scores = [0, 0, 0, 0]
-for game_num in range(1000):
+num_games = 10000
+scores = [0 for player in range(num_players)]
+games_won = [0 for player in range(num_players)]
+for game_num in range(num_games):
 	
 	# Game setup
-	players, game_data = set_up_game(game_num)
+	players, game_data = set_up_game(game_num, num_players)
 	
-	test_hands = [['H3', 'H5'],
-				  ['H4', 'H6']]
+#	test_hands = [['H3', 'H5'],
+#				  ['H4', 'H6']]
 #	if randint(0, 1) == 1:
 #		test_hands.reverse()
-	players = set_hands(test_hands)
+#	players = set_hands(test_hands)
 	
 #	game_data['show_Q_values'] = True
 #	game_data['show_play'] = True
@@ -111,13 +114,16 @@ for game_num in range(1000):
 	reset_player_order(players)
 	for i, player in enumerate(players):
 		scores[i] += player.points
-	#print(scores)
+	
+	winner = scores.index(min(scores))
+	games_won[winner] += 1	
+	
+	if game_num == num_games - 1:
+		print(scores)
+		print(games_won)
 
-keys = list(Q.keys())
-keys.sort()
-for key in keys:
-	print('{} : {}'.format(key, Q[key]))
 
+show_Q(Q)
 
 
 
