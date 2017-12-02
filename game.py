@@ -225,7 +225,24 @@ def finish_trick(players, game_data, trick, player0_choice):
 	return player0_points
 
 
+### DEBUG UTILS ###
 
+def set_hands(hands_list):
+	"""
+	Takes a list of list of card codes for values
+	
+	e.g. [['H2', 'H3'],  # Player 0
+		  ['H4', 'H5']]  # Player 1
+	"""
+	players = [Player(i) for i in range(len(hands_list))]
+	for index, hand in enumerate(hands_list):
+		player = players[index]
+		player.hand = []
+		for card_str in hand:
+			card = Card(card_str[0], card_str[1:])
+			player.hand.append(card)
+	set_first_lead(players)
+	return players
 
 
 
