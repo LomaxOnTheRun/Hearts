@@ -2,9 +2,11 @@ from random import shuffle, randint, choice
 
 
 #SUITS = ['C', 'D', 'S', 'H']
-SUITS = ['H']
 #VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+
+SUITS = ['H']
 VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+
 
 class Card:
 	def __init__(self, suit, value_str):
@@ -28,6 +30,7 @@ class Card:
 			return 1
 		else:
 			return 0
+
 
 class Player:
 	def __init__(self, id_val):
@@ -102,6 +105,7 @@ def shuffle_and_deal_cards():
 		player.sort_hand()
 	return players
 
+
 def set_first_lead(players):
 	"""Find first player to start game with C2"""
 	for player in players:
@@ -111,16 +115,19 @@ def set_first_lead(players):
 			player.lead = True
 			break
 
+
 def put_players_in_turn_order(players):
 	"""Put players in correct turn order"""
 	while players[0].lead == False:
 		players.append(players.pop(0))
+
 
 def get_player(players, id_val):
 	"""Return player with specified id_val"""
 	for player in players:
 		if player.id_val == id_val:
 			return player
+
 
 def split_players(players):
 	"""Split players into those before you, you, and after you"""
@@ -129,6 +136,7 @@ def split_players(players):
 	players_before = players[:player0_index]
 	players_after = players[player0_index+1:]
 	return players_before, player0, players_after
+
 
 def play_trick_for_players(players, game_data, trick):
 	"""Play the trick for a subgroup of players"""
@@ -141,12 +149,14 @@ def play_trick_for_players(players, game_data, trick):
 		trick.append(card)
 	return trick
 
+
 def update_hearts_broken(game_data, trick):
 	"""Check if hearts have been broken"""
 	if not game_data['hearts_broken']:
 		for card in trick:
 			if card.suit is 'H':
 				game_data['hearts_broken'] = True
+
 
 def give_trick_points(players, trick):
 	"""Give winner of trick points and the lead, return player0 points"""
@@ -165,9 +175,11 @@ def give_trick_points(players, trick):
 	else:
 		return 0
 
+
 def reset_player_order(players):
 	while players[0].id_val is not 0:
 		players.append(players.pop(0))
+
 
 def show_final_scores(players):
 	"""Print out final scores"""
@@ -175,6 +187,7 @@ def show_final_scores(players):
 	print('Final scores:')
 	for player in players:
 		print('player{} - {}'.format(player.id_val, player.points))
+
 
 def set_up_game(game_num):
 	players = shuffle_and_deal_cards()
@@ -189,12 +202,14 @@ def set_up_game(game_num):
 	}
 	return players, game_data
 
+
 def start_trick(players, game_data):
 	"""Start trick, including prep"""
 	put_players_in_turn_order(players)
 	players_before, _, _ = split_players(players)
 	trick = play_trick_for_players(players_before, game_data, [])
 	return trick
+
 
 def finish_trick(players, game_data, trick, player0_choice):
 	"""Finish trick including points and next lead"""
