@@ -48,16 +48,16 @@ class Player:
 				self.lead = False
 				return self.hand.pop(index)
 	
-	def get_legal_moves(self, trick, game_data):
+	def get_legal_moves(self, trick, game):
 		hand_codes = self.get_hand_codes()
 		# If lead
 		if self.lead:
 			# Lead with C2 as first card of game
-			if game_data['first_trick']:
+			if game.first_trick:
 				#return ['C2']
 				return [SUITS[0] + VALUES[0]]
 			# If hearts are broken, play whatever
-			elif game_data['hearts_broken']:
+			elif game.hearts_broken:
 				return hand_codes
 			# Or if you only have hearts, play whatever
 			elif all([code[0] == 'H' for code in hand_codes]):
@@ -70,15 +70,15 @@ class Player:
 			lead_card = trick[0]
 			legal_moves = [code for code in hand_codes if code[0] is lead_card.suit]
 			# Don't play queen on first move
-			if game_data['first_trick'] and 'SQ' in legal_moves:
+			if game.first_trick and 'SQ' in legal_moves:
 				legal_moves.remove('SQ')
 			# If can't follow suit, play whatever
 			if not legal_moves:
 				return hand_codes
 			return legal_moves
 	
-	def get_random_legal_card_to_play(self, trick, game_data):
-		legal_moves = self.get_legal_moves(trick, game_data)
+	def get_random_legal_card_to_play(self, trick, game):
+		legal_moves = self.get_legal_moves(trick, game)
 		if not legal_moves:
 			print([card.code for card in trick])
 			print(self.get_hand_codes())
@@ -91,6 +91,54 @@ class Player:
 			min_index = sort_values.index(min(sort_values))
 			self.hand.append(self.hand.pop(min_index))
 			del sort_values[min_index]
+
+
+class Game:
+	"""This keeps all the game metadata"""
+	def __init__(self, num_players=4, num_hands=1000, show_play=False, show_Q_values=False, show_scores=False, show_final_Q=False):
+		# User selected info
+		self.num_players = num_players
+		self.num_hands = num_hands
+		# Cumulative record
+		self.hand_num = 0
+		self.cumulative_scores = [0] * num_players
+		self.hands_won = [0] * num_players
+		# Switches that get reset every hand
+		self.first_trick = True
+		self.hearts_broken = False
+		# Debug options
+		self.show_play = show_play
+		self.show_Q_values = show_Q_values
+		self.show_scores = show_scores
+		self.show_final_Q = show_final_Q
+
+
+def set_up_game(game_num, num_players):
+	players = shuffle_and_deal_cards(num_players)
+	set_first_lead(players)
+	return players
+
+
+def start_trick(players, game):
+	"""Start trick, including prep"""
+	put_players_in_turn_order(players)
+	players_before, _, _ = split_players(players)
+	trick = play_trick_for_players(players_before, game, [])
+	return trick
+
+
+def finish_trick(players, game, trick, player0_choice):
+	"""Finish trick including points and next lead"""
+	_, player0, players_after = split_players(players)
+	player0_card = player0.play(player0_choice)
+	trick.append(player0_card)
+	trick = play_trick_for_players(players_after, game, trick)
+	update_hearts_broken(game, trick)
+	player0_points = give_trick_points(players, trick)
+	if game.show_play:
+		print('Trick: {}\n'.format([card.code for card in trick]))
+	game.first_trick = False
+	return player0_points
 
 
 def shuffle_and_deal_cards(num_players):
@@ -138,24 +186,24 @@ def split_players(players):
 	return players_before, player0, players_after
 
 
-def play_trick_for_players(players, game_data, trick):
+def play_trick_for_players(players, game, trick):
 	"""Play the trick for a subgroup of players"""
 	for player in players:
 		# For now, play randomly
-		card_to_play = player.get_random_legal_card_to_play(trick, game_data)
-		if game_data['show_play']:
+		card_to_play = player.get_random_legal_card_to_play(trick, game)
+		if game.show_play:
 			print(card_to_play + ' ' + str(player.get_hand_codes()))
 		card = player.play(card_to_play)
 		trick.append(card)
 	return trick
 
 
-def update_hearts_broken(game_data, trick):
+def update_hearts_broken(game, trick):
 	"""Check if hearts have been broken"""
-	if not game_data['hearts_broken']:
+	if not game.hearts_broken:
 		for card in trick:
 			if card.suit is 'H':
-				game_data['hearts_broken'] = True
+				game.hearts_broken = True
 
 
 def give_trick_points(players, trick):
@@ -189,43 +237,15 @@ def show_final_scores(players):
 		print('player{} - {}'.format(player.id_val, player.points))
 
 
-def set_up_game(game_num, num_players):
-	players = shuffle_and_deal_cards(num_players)
-	set_first_lead(players)
-	# Create dict for misc. game data
-	game_data = {
-		'game_num': game_num,
-		'show_play': False,
-		'hearts_broken': False,
-		'first_trick': True,
-		'show_Q_values': False,
-	}
-	return players, game_data
+###################
+#   DEBUG UTILS   #
+###################
 
 
-def start_trick(players, game_data):
-	"""Start trick, including prep"""
-	put_players_in_turn_order(players)
-	players_before, _, _ = split_players(players)
-	trick = play_trick_for_players(players_before, game_data, [])
-	return trick
+def show_hands(players):
+	for player in players:
+		print('player{} - {}'.format(player.id_val, player.get_hand_codes()))
 
-
-def finish_trick(players, game_data, trick, player0_choice):
-	"""Finish trick including points and next lead"""
-	_, player0, players_after = split_players(players)
-	player0_card = player0.play(player0_choice)
-	trick.append(player0_card)
-	trick = play_trick_for_players(players_after, game_data, trick)
-	update_hearts_broken(game_data, trick)
-	player0_points = give_trick_points(players, trick)
-	if game_data['show_play']:
-		print('Trick: {}\n'.format([card.code for card in trick]))
-	game_data['first_trick'] = False
-	return player0_points
-
-
-### DEBUG UTILS ###
 
 def set_hands(hands_list):
 	"""
