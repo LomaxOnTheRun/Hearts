@@ -56,6 +56,13 @@ def update_Q(Q, old_state_str, old_action, learning_rate, reward, discount_facto
 		print('{} -> {}'.format(old_Q_key, new_Q_value))
 
 
+def show_Q(Q):
+	keys = list(Q.keys())
+	keys.sort()
+	for key in keys:
+		print('{} : {}'.format(key, Q[key]))
+
+
 
 
 

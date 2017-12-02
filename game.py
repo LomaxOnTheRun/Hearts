@@ -93,12 +93,12 @@ class Player:
 			del sort_values[min_index]
 
 
-def shuffle_and_deal_cards():
+def shuffle_and_deal_cards(num_players):
 	"""Shuffle and deal cards"""
-	players = [Player(i) for i in range(4)]
+	players = [Player(i) for i in range(num_players)]
 	deck = [Card(suit, value_str) for suit in SUITS for value_str in VALUES]
 	shuffle(deck)
-	hand_size = int((len(SUITS) * len(VALUES)) / 4)
+	hand_size = int((len(SUITS) * len(VALUES)) / num_players)
 	for player in players:
 		player.hand = deck[:hand_size]
 		del deck[:hand_size]
@@ -189,8 +189,8 @@ def show_final_scores(players):
 		print('player{} - {}'.format(player.id_val, player.points))
 
 
-def set_up_game(game_num):
-	players = shuffle_and_deal_cards()
+def set_up_game(game_num, num_players):
+	players = shuffle_and_deal_cards(num_players)
 	set_first_lead(players)
 	# Create dict for misc. game data
 	game_data = {
@@ -225,7 +225,24 @@ def finish_trick(players, game_data, trick, player0_choice):
 	return player0_points
 
 
+### DEBUG UTILS ###
 
+def set_hands(hands_list):
+	"""
+	Takes a list of list of card codes for values
+	
+	e.g. [['H2', 'H3'],  # Player 0
+		  ['H4', 'H5']]  # Player 1
+	"""
+	players = [Player(i) for i in range(len(hands_list))]
+	for index, hand in enumerate(hands_list):
+		player = players[index]
+		player.hand = []
+		for card_str in hand:
+			card = Card(card_str[0], card_str[1:])
+			player.hand.append(card)
+	set_first_lead(players)
+	return players
 
 
 

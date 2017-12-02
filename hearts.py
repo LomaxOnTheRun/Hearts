@@ -1,6 +1,8 @@
 from game import *
 from q_learning import *
 
+from random import randint
+
 
 # NOTES:
 # - I'm not shooting the moon for now (more complex), when I do:
@@ -35,28 +37,39 @@ def show_hands(players):
 	for player in players:
 		print('player{} - {}'.format(player.id_val, player.get_hand_codes()))
 
+
 # Create a Q dictionary, with keys matching to states
 Q = {}
 
 # Set some variables
+num_players = 2
 learning_rate = 0.5#0.1
 discount_factor = 0.9
 
-scores = [0, 0, 0, 0]
-for game_num in range(10000000):
+num_games = 10000
+scores = [0 for player in range(num_players)]
+games_won = [0 for player in range(num_players)]
+for game_num in range(num_games):
 	
 	# Game setup
-	players, game_data = set_up_game(game_num)
+	players, game_data = set_up_game(game_num, num_players)
 	
-	#game_data['show_Q_values'] = True
-	#show_hands(players)
-	#print(game_num)
+#	test_hands = [['H3', 'H5'],
+#				  ['H4', 'H6']]
+#	if randint(0, 1) == 1:
+#		test_hands.reverse()
+#	players = set_hands(test_hands)
 	
-	if game_num % 10000 == 0:
-		print('\n#{} - {}'.format(game_num, scores))
-		scores = [0, 0, 0, 0]
-	else:
-		game_data['show_Q_values'] = False
+#	game_data['show_Q_values'] = True
+#	game_data['show_play'] = True
+#	show_hands(players)
+#	print(game_num)
+	
+#	if game_num % 10000 == 0:
+#		print('\n#{} - {}'.format(game_num, scores))
+#		scores = [0, 0, 0, 0]
+#	else:
+#		game_data['show_Q_values'] = False
 
 	# First trick
 	trick = start_trick(players, game_data)
@@ -101,11 +114,16 @@ for game_num in range(10000000):
 	reset_player_order(players)
 	for i, player in enumerate(players):
 		scores[i] += player.points
-	#print(scores)
 	
+	winner = scores.index(min(scores))
+	games_won[winner] += 1	
+	
+	if game_num == num_games - 1:
+		print(scores)
+		print(games_won)
 
 
-
+show_Q(Q)
 
 
 
