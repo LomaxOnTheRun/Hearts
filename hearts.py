@@ -2,6 +2,7 @@ from game import *
 from q_learning import *
 
 from random import randint
+from sys import stdout
 
 
 # NOTES:
@@ -15,19 +16,26 @@ from random import randint
 Q = {}
 
 # Set some variables
-num_players = 2
+num_players = 4
 learning_rate = 0.5#0.1
 discount_factor = 0.9
 
 
-game = Game(num_players=2, num_hands=1000000)
+game = Game(num_players, num_hands=10000)
 #game.show_play = True
 #game.show_Q_values = True
 #game.show_final_Q = True
 
 current_percentage = 0
 
-for hand_num in range(game.num_hands): 
+for hand_num in range(game.num_hands):
+	
+	# Hand counter
+	hand_percentage = int((hand_num * 100.0) / game.num_hands) + 1
+	if hand_percentage > current_percentage:
+		current_percentage = hand_percentage
+		stdout.write('\b' * 20 + 'Running games [' + str(current_percentage) + '%]')
+		stdout.flush()
 
 	# Game setup
 	players = set_up_game(hand_num, num_players)
@@ -36,7 +44,7 @@ for hand_num in range(game.num_hands):
 	# Show cumulative scores per X number of games
 	if game.show_scores and hand_num % 10000 == 0:
 		print('\n#{} - {}'.format(hand_num, game.cumulative_scores))
-		game.cumulative_scores = [0, 0, 0, 0]
+		game.cumulative_scores = [0] * num_players
 
 	# First trick
 	trick = start_trick(players, game)
@@ -106,8 +114,8 @@ for hand_num in range(game.num_hands):
 		game.hands_won[winner] += 1	
 	
 	if hand_num == game.num_hands - 1:
-		print('Cumulative scores: {}'.format(game.cumulative_scores))
-		print('Hands won: {}'.format(game.hands_won))
+		print('\nCumulative scores:\t{}'.format(game.cumulative_scores))
+		print('Hands won:\t\t{}'.format(game.hands_won))
 
 if game.show_final_Q:
 	show_Q(Q)
