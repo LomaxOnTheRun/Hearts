@@ -1,11 +1,12 @@
 from random import shuffle, randint, choice
 
 
-#SUITS = ['C', 'D', 'S', 'H']
-#VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+SUITS_FULL = ['C', 'D', 'S', 'H']
+VALUES_FULL = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 
-SUITS = ['H']
-VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+SUITS = ['S']
+#VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+VALUES = ['10', 'J', 'Q', 'K']
 
 
 class Card:
@@ -14,7 +15,10 @@ class Card:
 		self.value = self.get_value(value_str)
 		self.code = suit + value_str
 		self.points = self.get_points()
-		self.sort_value = 100 * SUITS.index(suit) + VALUES.index(value_str)
+		self.sort_value = 100 * SUITS_FULL.index(suit) + VALUES_FULL.index(value_str)
+
+	def __str__(self):
+		return self.code
 	
 	def get_value(self, value_str):
 		royals = {'J': 11, 'Q': 12, 'K': 13, 'A': 14}
@@ -55,7 +59,8 @@ class Player:
 			# Lead with C2 as first card of game
 			if game.first_trick:
 				#return ['C2']
-				return [SUITS[0] + VALUES[0]]
+				#return [SUITS[0] + VALUES[0]]
+				return [get_lowest_card(game)]
 			# If hearts are broken, play whatever
 			elif game.hearts_broken:
 				return hand_codes
@@ -81,6 +86,7 @@ class Player:
 		legal_moves = self.get_legal_moves(trick, game)
 		if not legal_moves:
 			print([card.code for card in trick])
+			print(trick)
 			print(self.get_hand_codes())
 		card_to_play = choice(legal_moves)
 		return card_to_play
@@ -99,6 +105,7 @@ class Game:
 		# User selected info
 		self.num_players = num_players
 		self.num_hands = num_hands
+		self.deck = create_deck()
 		# Cumulative record
 		self.hand_num = 0
 		self.cumulative_scores = [0] * num_players
@@ -113,9 +120,9 @@ class Game:
 		self.show_final_Q = show_final_Q
 
 
-def set_up_game(game_num, num_players):
-	players = shuffle_and_deal_cards(num_players)
-	set_first_lead(players)
+def set_up_game(game_num, num_players, game):
+	players = shuffle_and_deal_cards(num_players, game)
+	set_first_lead(players, game)
 	return players
 
 
@@ -141,11 +148,13 @@ def finish_trick(players, game, trick, player0_choice):
 	return player0_points
 
 
-def shuffle_and_deal_cards(num_players):
+def shuffle_and_deal_cards(num_players, game):
 	"""Shuffle and deal cards"""
 	players = [Player(i) for i in range(num_players)]
-	deck = [Card(suit, value_str) for suit in SUITS for value_str in VALUES]
+	deck = [card for card in game.deck]
 	shuffle(deck)
+	if len(deck) % num_players != 0:
+		raise Exception('Deck size not divisable by number of players: {} / {}'.format(len(deck), num_players))
 	hand_size = int((len(SUITS) * len(VALUES)) / num_players)
 	for player in players:
 		player.hand = deck[:hand_size]
@@ -154,19 +163,43 @@ def shuffle_and_deal_cards(num_players):
 	return players
 
 
-def set_first_lead(players):
+def set_first_lead(players, game):
 	"""Find first player to start game with C2"""
 	for player in players:
 		#if 'C2' in player.get_hand_codes():
-		lowest_card = SUITS[0] + VALUES[0]
+		lowest_card = get_lowest_card(game)
 		if lowest_card in player.get_hand_codes():
 			player.lead = True
 			break
 
 
+def create_deck():
+	"""Creates a deck using the SUITS and VALUES"""
+	return [Card(suit, value_str) for suit in SUITS for value_str in VALUES]
+
+
+def get_lowest_card(game):
+	"""Returns the code for the lowest card in the deck"""
+	# Split deck into suits
+	suit_split_cards = [[] for suit in SUITS_FULL]
+	for card in game.deck:
+		for index, suit in enumerate(SUITS_FULL):
+			if card.suit == suit:
+				suit_split_cards[index].append(card)
+	
+	for suit_cards in suit_split_cards:
+		if suit_cards:
+			min_card = suit_cards[0]
+			for card in suit_cards:
+				if card.value < min_card.value:
+					min_card = card
+			return min_card.code
+	return None
+
+
 def put_players_in_turn_order(players):
 	"""Put players in correct turn order"""
-	while players[0].lead == False:
+	while not players[0].lead:
 		players.append(players.pop(0))
 
 
@@ -247,13 +280,14 @@ def show_hands(players):
 		print('player{} - {}'.format(player.id_val, player.get_hand_codes()))
 
 
-def set_hands(hands_list):
+def set_hands(hands_list, game):
 	"""
 	Takes a list of list of card codes for values
 	
 	e.g. [['H2', 'H3'],  # Player 0
 		  ['H4', 'H5']]  # Player 1
 	"""
+	game.deck = []
 	players = [Player(i) for i in range(len(hands_list))]
 	for index, hand in enumerate(hands_list):
 		player = players[index]
@@ -261,9 +295,9 @@ def set_hands(hands_list):
 		for card_str in hand:
 			card = Card(card_str[0], card_str[1:])
 			player.hand.append(card)
-	set_first_lead(players)
+			game.deck.append(card)
+	set_first_lead(players, game)
 	return players
-
 
 
 

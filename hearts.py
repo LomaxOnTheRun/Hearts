@@ -1,7 +1,6 @@
 from game import *
 from q_learning import *
 
-from random import randint
 from sys import stdout
 
 
@@ -16,30 +15,31 @@ from sys import stdout
 Q = {}
 
 # Set some variables
-num_players = 4
-learning_rate = 0.5#0.1
+num_players = 2
+learning_rate = 0.9#0.5#0.1
 discount_factor = 0.9
+num_hands = 10000
 
 
-game = Game(num_players, num_hands=10000)
+game = Game(num_players, num_hands)
 #game.show_play = True
 #game.show_Q_values = True
 #game.show_final_Q = True
 
 current_percentage = 0
 
-for hand_num in range(game.num_hands):
+for hand_num in range(num_hands):
 	
 	# Hand counter
 	hand_percentage = int((hand_num * 100.0) / game.num_hands) + 1
 	if hand_percentage > current_percentage:
 		current_percentage = hand_percentage
-		stdout.write('\b' * 20 + 'Running games [' + str(current_percentage) + '%]')
+		stdout.write('{}Running games [{}%]'.format('\b' * 20, current_percentage))
 		stdout.flush()
 
 	# Game setup
-	players = set_up_game(hand_num, num_players)
-#	players = set_hands([['H3', 'H5'], ['H4', 'H6']])
+	players = set_up_game(hand_num, num_players, game)
+	players = set_hands([['S10', 'SQ'], ['DJ', 'SK']], game)
 	
 	# Show cumulative scores per X number of games
 	if game.show_scores and hand_num % 10000 == 0:
@@ -65,15 +65,17 @@ for hand_num in range(game.num_hands):
 		if not game.first_trick:
 			player0 = get_player(players, 0)
 			legal_moves = player0.get_legal_moves(trick, game)
-			update_Q(Q,
-					 old_state_str,
-					 action,
-					 learning_rate,
-					 reward,
-					 discount_factor,
-					 new_state_str,
-					 game,
-					 legal_moves)
+			update_Q(
+				Q,
+				old_state_str,
+				action,
+				learning_rate,
+				reward,
+				discount_factor,
+				new_state_str,
+				game,
+				legal_moves
+			)
 	
 		# Use Q to pick greedy choice
 		action = get_player0_choice(players, game, trick, Q)
@@ -90,15 +92,17 @@ for hand_num in range(game.num_hands):
 		old_state_str = new_state_str
 	
 	# Do final learning
-	update_Q(Q,
-			 old_state_str,
-			 action,
-			 learning_rate,
-			 reward,
-			 discount_factor,
-			 'terminal',
-			 game,
-			 legal_moves)
+	update_Q(
+		Q,
+		old_state_str,
+		action,
+		learning_rate,
+		reward,
+		discount_factor,
+		'terminal',
+		game,
+		legal_moves
+	)
 
 	# Show final scores
 	#show_final_scores(players)
