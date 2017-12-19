@@ -60,7 +60,7 @@ def get_reward(player0_points):
 	return -player0_points
 
 
-def update_Q(Q, old_state_str, old_action, learning_rate, reward, discount_factor, new_state_str, game, legal_moves):
+def update_Q(Q, old_state_str, old_action, reward, new_state_str, game, legal_moves):
 	"""Does what it says on the tin"""
 	# Get old_Q_value
 	old_Q_key = get_Q_key(old_state_str, old_action)
@@ -73,7 +73,7 @@ def update_Q(Q, old_state_str, old_action, learning_rate, reward, discount_facto
 		next_Q_values = [get_Q_value(Q, key) for key in next_Q_keys]
 		max_next_Q_value = max(next_Q_values)
 	# Get new Q value
-	new_Q_value = old_Q_value + learning_rate * (reward + discount_factor * max_next_Q_value - old_Q_value)
+	new_Q_value = old_Q_value + game.learning_rate * (reward + game.discount_factor * max_next_Q_value - old_Q_value)
 	Q[old_Q_key] = new_Q_value
 	if game.show_Q_values:
 		print('{} -> {}'.format(old_Q_key, new_Q_value))

@@ -58,8 +58,6 @@ class Player:
 		if self.lead:
 			# Lead with C2 as first card of game
 			if game.first_trick:
-				#return ['C2']
-				#return [SUITS[0] + VALUES[0]]
 				return [get_lowest_card(game)]
 			# If hearts are broken, play whatever
 			elif game.hearts_broken:
@@ -101,11 +99,14 @@ class Player:
 
 class Game:
 	"""This keeps all the game metadata"""
-	def __init__(self, num_players=4, num_hands=1000, show_play=False, show_Q_values=False, show_scores=False, show_final_Q=False):
+	def __init__(self, num_players=4, num_hands=1000, show_play=False, show_Q_values=False, show_scores=False, show_final_Q=False, learning_rate=0.1, discount_factor=0.9):
 		# User selected info
 		self.num_players = num_players
 		self.num_hands = num_hands
 		self.deck = create_deck()
+		# Learning hyperparameters
+		self.learning_rate = learning_rate
+		self.discount_factor = discount_factor
 		# Cumulative record
 		self.hand_num = 0
 		self.cumulative_scores = [0] * num_players
@@ -120,8 +121,8 @@ class Game:
 		self.show_final_Q = show_final_Q
 
 
-def set_up_game(game_num, num_players, game):
-	players = shuffle_and_deal_cards(num_players, game)
+def set_up_game(game_num, game):
+	players = shuffle_and_deal_cards(game)
 	set_first_lead(players, game)
 	return players
 
@@ -148,14 +149,14 @@ def finish_trick(players, game, trick, player0_choice):
 	return player0_points
 
 
-def shuffle_and_deal_cards(num_players, game):
+def shuffle_and_deal_cards(game):
 	"""Shuffle and deal cards"""
-	players = [Player(i) for i in range(num_players)]
+	players = [Player(i) for i in range(game.num_players)]
 	deck = [card for card in game.deck]
 	shuffle(deck)
-	if len(deck) % num_players != 0:
-		raise Exception('Deck size not divisable by number of players: {} / {}'.format(len(deck), num_players))
-	hand_size = int((len(SUITS) * len(VALUES)) / num_players)
+	if len(deck) % game.num_players != 0:
+		raise Exception('Deck size not divisable by number of players: {} / {}'.format(len(deck), game.num_players))
+	hand_size = int((len(SUITS) * len(VALUES)) / game.num_players)
 	for player in players:
 		player.hand = deck[:hand_size]
 		del deck[:hand_size]
@@ -166,7 +167,6 @@ def shuffle_and_deal_cards(num_players, game):
 def set_first_lead(players, game):
 	"""Find first player to start game with C2"""
 	for player in players:
-		#if 'C2' in player.get_hand_codes():
 		lowest_card = get_lowest_card(game)
 		if lowest_card in player.get_hand_codes():
 			player.lead = True
@@ -287,6 +287,8 @@ def set_hands(hands_list, game):
 	e.g. [['H2', 'H3'],  # Player 0
 		  ['H4', 'H5']]  # Player 1
 	"""
+	if len(hands_list) != game.num_players:
+		raise Exception('Set hands list not equal to set number of players in game')
 	game.deck = []
 	players = [Player(i) for i in range(len(hands_list))]
 	for index, hand in enumerate(hands_list):
