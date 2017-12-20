@@ -10,12 +10,6 @@ from sys import stdout
 #   - Keep track of more history (other player scores / previously tricks)
 # - I'm not passing cards across at the start of hands (more complex)
 
-game = Game(num_players=2, num_hands=10000)
-#game.show_play = True
-#game.show_Q_values = True
-#game.show_final_Q = True
-
-
 def run_game(game, hands_list=None):
 	"""
 	Runs the game with metadata stored in 'game' for a number of hands equal to num_hands
@@ -119,6 +113,11 @@ def run_game(game, hands_list=None):
 	return Q, game
 
 
-hands_list = [['S10', 'SQ'], ['DJ', 'SK']]
+game = Game(num_players=2, num_hands=100000)
+#game.show_play = True
+#game.show_Q_values = True
+game.show_final_Q = True
+
+hands_list = [['SJ', 'SQ'], ['S10', 'SK']]
 Q, game = run_game(game, hands_list)
 

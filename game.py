@@ -1,4 +1,4 @@
-from random import shuffle, randint, choice
+from random import shuffle, randint, choice, random
 
 
 SUITS_FULL = ['C', 'D', 'S', 'H']
@@ -7,6 +7,31 @@ VALUES_FULL = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 SUITS = ['S']
 #VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 VALUES = ['10', 'J', 'Q', 'K']
+
+
+class Game:
+	"""This keeps all the game metadata"""
+	def __init__(self, num_players=4, num_hands=1000, show_play=False, show_Q_values=False, show_scores=False, show_final_Q=False, learning_rate=0.1, discount_factor=0.9, greediness=0.9):
+		# User selected info
+		self.num_players = num_players
+		self.num_hands = num_hands
+		self.deck = create_deck()
+		# Learning hyperparameters
+		self.learning_rate = learning_rate
+		self.discount_factor = discount_factor
+		self.greediness = greediness  # The greedier, the more likely to pick the best move
+		# Cumulative record
+		self.hand_num = 0
+		self.cumulative_scores = [0] * num_players
+		self.hands_won = [0] * num_players
+		# Switches that get reset every hand
+		self.first_trick = True
+		self.hearts_broken = False
+		# Debug options
+		self.show_play = show_play
+		self.show_Q_values = show_Q_values
+		self.show_scores = show_scores
+		self.show_final_Q = show_final_Q
 
 
 class Card:
@@ -95,30 +120,6 @@ class Player:
 			min_index = sort_values.index(min(sort_values))
 			self.hand.append(self.hand.pop(min_index))
 			del sort_values[min_index]
-
-
-class Game:
-	"""This keeps all the game metadata"""
-	def __init__(self, num_players=4, num_hands=1000, show_play=False, show_Q_values=False, show_scores=False, show_final_Q=False, learning_rate=0.1, discount_factor=0.9):
-		# User selected info
-		self.num_players = num_players
-		self.num_hands = num_hands
-		self.deck = create_deck()
-		# Learning hyperparameters
-		self.learning_rate = learning_rate
-		self.discount_factor = discount_factor
-		# Cumulative record
-		self.hand_num = 0
-		self.cumulative_scores = [0] * num_players
-		self.hands_won = [0] * num_players
-		# Switches that get reset every hand
-		self.first_trick = True
-		self.hearts_broken = False
-		# Debug options
-		self.show_play = show_play
-		self.show_Q_values = show_Q_values
-		self.show_scores = show_scores
-		self.show_final_Q = show_final_Q
 
 
 def set_up_game(game_num, game):

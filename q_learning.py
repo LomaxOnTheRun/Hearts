@@ -16,10 +16,18 @@ def get_player0_choice(players, game, trick, Q):
 			print('{} -> {}'.format(Q_keys[i], Q_values[i]))
 	max_Q_value = max(Q_values)
 	best_moves = []
+	other_moves = []
 	for index, value in enumerate(Q_values):
+		move = legal_moves[index]
 		if value == max_Q_value:
-			best_moves.append(legal_moves[index])
-	chosen_move = choice(best_moves)
+			best_moves.append(move)
+		else:
+			other_moves.append(move)
+	# Choose move with appropriate greediness
+	if random() < game.greediness or not other_moves:
+		chosen_move = choice(best_moves)
+	else:
+		chosen_move = choice(other_moves)
 	return chosen_move
 
 
