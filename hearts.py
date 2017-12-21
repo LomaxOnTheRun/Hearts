@@ -3,12 +3,58 @@ from q_learning import *
 
 from sys import stdout
 
-
 # NOTES:
 # - I'm not shooting the moon for now (more complex), when I do:
 #   - Need to think of how to reward / punish (-26*4 points at end?)
 #   - Keep track of more history (other player scores / previously tricks)
 # - I'm not passing cards across at the start of hands (more complex)
+
+
+# NN structure for 4 cards:
+# - 12 binary inputs (trick, legal moves, card played)
+#   - 4 binary inputs for each category (one per card in play)
+# - Hidden layer (? nodes, starting with 20)
+# - 1 linear output, value of that play
+#   - Equivalent of current Q value
+
+from keras.models import Sequential
+from keras.layers import Dense, Activation
+
+model = Sequential()
+model.add(Dense(20, activation='relu', input_shape=(12,)))
+model.add(Dense(1, activation='linear'))
+model.compile(optimizer='sgd',		# Not sure about this
+			  loss='mse',			# Not sure about this either
+			  metrics=['accuracy'])
+
+test_x = [
+	[1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0],
+	[1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0],
+	[1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
+	[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+	[0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0],
+	[0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0],
+	[0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
+	[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0]
+]
+
+test_y = [0.0, -1.3, 0.0, -2.47, -0.12, 0.0, 0.0, 0.0]
+
+#model.fit(test_x*100, test_y*100, epochs=5)
+#loss_and_metrics = model.evaluate(test_x, test_y)
+#print(loss_and_metrics)
+
+#x = np.array([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0])
+#x = x.reshape(1, 12)
+#print(x)
+#print(model.predict(x))
+
+# During training:
+# - model.fit(x_train, y_train, epochs=, batch_size=)
+# 
+# After training:
+# - score = model.evaluate(x_test, y_test, batch_size=)
+
 
 def run_game(game, hands_list=None):
 	"""
@@ -23,7 +69,7 @@ def run_game(game, hands_list=None):
 		hand_percentage = int((hand_num * 100.0) / game.num_hands) + 1
 		if hand_percentage > current_percentage:
 			current_percentage = hand_percentage
-			stdout.write('{}Running games [{}%]'.format('\b' * 20, current_percentage))
+			stdout.write('{}Running games [{}%]'.format('\b'*20, current_percentage))
 			stdout.flush()
 
 		# Game setup
@@ -62,7 +108,8 @@ def run_game(game, hands_list=None):
 					reward,
 					new_state_str,
 					game,
-					legal_moves
+					legal_moves,
+					model
 				)
 	
 			# Use Q to pick greedy choice
@@ -87,7 +134,8 @@ def run_game(game, hands_list=None):
 			reward,
 			'terminal',
 			game,
-			legal_moves
+			legal_moves,
+			model
 		)
 
 		# Show final scores
