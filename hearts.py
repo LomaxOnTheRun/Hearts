@@ -38,7 +38,7 @@ test_x = [
 	[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0]
 ]
 
-test_y = [0.0, -1.3, 0.0, -2.47, -0.12, 0.0, 0.0, 0.0]
+test_y = [0.0, -13.0, 0.0, -13.0, -11.7, 0.0, 0.0, 0.0]
 
 #model.fit(test_x*100, test_y*100, epochs=5)
 #loss_and_metrics = model.evaluate(test_x, test_y)
@@ -156,12 +156,12 @@ def run_game(game, hands_list=None):
 			print('Hands won:\t\t{}'.format(game.hands_won))
 
 	if game.show_final_Q:
-		show_Q(Q)
+		show_Q(Q, model)
 	
 	return Q, game
 
 
-game = Game(num_players=2, num_hands=100000)
+game = Game(num_players=2, num_hands=10000)
 #game.show_play = True
 #game.show_Q_values = True
 game.show_final_Q = True
