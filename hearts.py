@@ -64,7 +64,7 @@ def run_game(game):
 		# First trick
 		trick = start_trick(players, game)
 		old_state_str = get_state_str(trick, players, game)
-		action = get_player0_choice(players, game, trick, Q)
+		action = get_player0_choice(players, game, trick, Q, model)
 		player0_points = finish_trick(players, game, trick, action)
 		reward = get_reward(player0_points)
 		if game.show_Q_values:
@@ -92,7 +92,7 @@ def run_game(game):
 				)
 	
 			# Use Q to pick greedy choice
-			action = get_player0_choice(players, game, trick, Q)
+			action = get_player0_choice(players, game, trick, Q, model)
 	
 			# Get next state
 			player0_points = finish_trick(players, game, trick, action)
@@ -139,42 +139,20 @@ def run_game(game):
 	return Q, game
 
 
-game = Game(num_players=2, num_hands=100)
+game = Game(num_players=2, num_hands=10000)
 #game.show_play = True
 #game.show_Q_values = True
+#game.show_NN_values = True
 game.show_final_Q = True
 
-hands_list = [['SJ', 'SQ', 'C4', 'D3'], ['S10', 'SK', 'H2', 'CK']]
-game.set_hands(hands_list)
+#hands_list = [['SJ', 'SQ'], ['S10', 'SK']]
+#game.set_hands(hands_list)
 
-from keras.models import Sequential
-from keras.layers import Dense, Activation
-
-model = Sequential()
-model.add(Dense(20, activation='relu', input_shape=(24, )))#3 * len(game.deck),)))
-model.add(Dense(1, activation='linear'))
-model.compile(optimizer='sgd',		# Not sure about this
-			  loss='mse',			# Not sure about this either
-			  metrics=['accuracy'])
-
-test_x = [
-	[1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0],
-	[1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0],
-	[1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
-	[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0],
-	[0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0],
-	[0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0],
-	[0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
-	[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0]
-]
-
-test_y = [0.0, -13.0, 0.0, -13.0, -11.7, 0.0, 0.0, 0.0]
-
-
-
+model = create_network_model(game)
 Q, game = run_game(game)
-state_str = 'SJSQD3H2_C4D3_SKCK'
-print(state_str)
-binary_array = state_str_to_array(state_str, game)
-print(array_to_state_str(binary_array, game))
+
+#state_str = 'SJSQD3H2_C4D3_SKCK'
+#print(state_str)
+#binary_array = state_str_to_array(state_str, game)
+#print(array_to_state_str(binary_array, game))
 

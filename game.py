@@ -6,12 +6,12 @@ VALUES_FULL = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 
 SUITS = ['S']
 #VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
-VALUES = ['10', 'J', 'Q', 'K']
+VALUES = ['9', '10', 'J', 'Q', 'K', 'A']
 
 
 class Game:
 	"""This keeps all the game metadata"""
-	def __init__(self, num_players=4, num_hands=1000, show_play=False, show_Q_values=False, show_scores=False, show_final_Q=False, learning_rate=0.1, discount_factor=0.9, greediness=0.9):
+	def __init__(self, num_players=4, num_hands=1000, learning_rate=0.1, discount_factor=0.9, greediness=0.9):
 		# User selected info
 		self.num_players = num_players
 		self.num_hands = num_hands
@@ -29,10 +29,11 @@ class Game:
 		self.first_trick = True
 		self.hearts_broken = False
 		# Debug options
-		self.show_play = show_play
-		self.show_Q_values = show_Q_values
-		self.show_scores = show_scores
-		self.show_final_Q = show_final_Q
+		self.show_play = False
+		self.show_Q_values = False
+		self.show_NN_values = False
+		self.show_scores = False
+		self.show_final_Q = False
 	
 	def set_hands(self, hands_list):
 		"""

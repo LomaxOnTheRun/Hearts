@@ -1,6 +1,9 @@
 from game import *
 import numpy as np
 
+from keras.models import Sequential
+from keras.layers import Dense, Activation
+
 # For hands_list = [['SJ', 'SQ'], ['S10', 'SK']]
 # 
 # Q: 
@@ -22,7 +25,7 @@ import numpy as np
 #  since 'played' will always be a subgroup of 'available to play'
 
 
-def get_player0_choice(players, game, trick, Q):
+def get_player0_choice(players, game, trick, Q, model):
 	"""Gets greedy choice"""
 	player0 = get_player(players, 0)
 	#player0_card_code = input('This is your hand:\n{}\nCard to play: '.format(player0.get_hand_codes()))
@@ -31,16 +34,26 @@ def get_player0_choice(players, game, trick, Q):
 	legal_moves = player0.get_legal_moves(trick, game)
 	state_str = get_state_str(trick, players, game)
 	Q_keys = [get_Q_key(state_str, move) for move in legal_moves]
+	# Q values
 	Q_values = [get_Q_value(Q, key) for key in Q_keys]
 	if game.show_Q_values:
 		for i in range(len(Q_keys)):
 			print('{} -> {}'.format(Q_keys[i], Q_values[i]))
 	max_Q_value = max(Q_values)
+	# NN values
+	NN_values = [get_NN_output(model, key, game) for key in Q_keys]
+	if game.show_NN_values:
+		for i in range(len(Q_keys)):
+			print('{} -> {}'.format(Q_keys[i], Q_values[i]))
+	max_NN_value = max(NN_values)
+	# Choose
 	best_moves = []
 	other_moves = []
-	for index, value in enumerate(Q_values):
+#	for index, value in enumerate(Q_values):
+	for index, value in enumerate(NN_values):
 		move = legal_moves[index]
-		if value == max_Q_value:
+#		if value == max_Q_value:
+		if value == max_NN_value:
 			best_moves.append(move)
 		else:
 			other_moves.append(move)
@@ -138,6 +151,18 @@ def show_Q(Q, model, game):
 #   NEURAL NETWORK STUFF   #
 #                          #
 ############################
+
+
+def create_network_model(game):
+	model = Sequential()
+	model.add(Dense(20,
+					activation='relu',
+					input_shape=(3 * len(game.deck),)))
+	model.add(Dense(1, activation='linear'))
+	model.compile(optimizer='sgd',		# Not sure about this
+				  loss='mse',			# Not sure about this either
+				  metrics=['accuracy'])
+	return model
 
 
 def get_NN_state(Q_key, game):
