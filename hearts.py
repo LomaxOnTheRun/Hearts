@@ -10,29 +10,11 @@ from sys import stdout
 # - I'm not passing cards across at the start of hands (more complex)
 
 
-# NN structure for 4 cards:
-# - 12 binary inputs (trick, legal moves, card played)
-#   - 4 binary inputs for each category (one per card in play)
-# - Hidden layer (? nodes, starting with 20)
-# - 1 linear output, value of that play
-#   - Equivalent of current Q value
 
+# FUTURE THOUGHTS:
+# - CALCULATE BY HAND BEST ODDS OF WINNING WITH SUBSET OF CARDS, SEE HOW CLOSE NET GETS
+# - TRAIN NETWORK WITH SUBSETS OF CARDS, AND EXPAND TO FILL ARRAYS WITH ZEROS
 
-
-#model.fit(test_x*100, test_y*100, epochs=5)
-#loss_and_metrics = model.evaluate(test_x, test_y)
-#print(loss_and_metrics)
-
-#x = np.array([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0])
-#x = x.reshape(1, 12)
-#print(x)
-#print(model.predict(x))
-
-# During training:
-# - model.fit(x_train, y_train, epochs=, batch_size=)
-# 
-# After training:
-# - score = model.evaluate(x_test, y_test, batch_size=)
 
 
 def run_game(game):
@@ -42,13 +24,14 @@ def run_game(game):
 	# Create a Q dictionary, with keys matching to states
 	Q = {}
 	
+	new_percentage = False
 	current_percentage = 0
 	for hand_num in range(game.num_hands):
 		# Hand counter
 		hand_percentage = int((hand_num * 100.0) / game.num_hands) + 1
 		if hand_percentage > current_percentage:
-			current_percentage = hand_percentage
-			stdout.write('{}Running games [{}%]'.format('\b'*20, current_percentage))
+			new_percentage = True
+			stdout.write('{}Running games [{}%]'.format('\b'*20, hand_percentage))
 			stdout.flush()
 
 		# Game setup
@@ -124,14 +107,24 @@ def run_game(game):
 	
 		# Get winners for current game
 		points = [player.points for player in players]
+		game.update_points_won(points)
 		min_points = min(points)
 		winners = [index for index, point in enumerate(points) if point == min_points]
 		for winner in winners:
-			game.hands_won[winner] += 1	
+			game.hands_won[winner] += 1
+		
+		if game.show_running_scores and new_percentage:
+			row_format = '{:>15}' * game.num_players
+			print(row_format.format(*game.points_won))
+			game.points_won = [0] * game.num_players
 	
 		if hand_num == game.num_hands - 1:
 			print('\nCumulative scores:\t{}'.format(game.cumulative_scores))
 			print('Hands won:\t\t{}'.format(game.hands_won))
+		
+		if new_percentage:
+			current_percentage = hand_percentage
+			new_percentage = False
 
 	if game.show_final_Q:
 		show_Q(Q, model, game)
@@ -139,14 +132,16 @@ def run_game(game):
 	return Q, game
 
 
-game = Game(num_players=2, num_hands=10000)
+game = Game(num_players=3, num_hands=100, greediness=1.0)
 #game.show_play = True
 #game.show_Q_values = True
 #game.show_NN_values = True
-game.show_final_Q = True
+#game.show_final_Q = True
+game.show_running_scores = True
 
-#hands_list = [['SJ', 'SQ'], ['S10', 'SK']]
-#game.set_hands(hands_list)
+hands_list = [['SJ', 'SQ'], ['S10', 'SK']]
+game.set_hands(hands_list)
+print([card.code for card in game.deck])
 
 model = create_network_model(game)
 Q, game = run_game(game)

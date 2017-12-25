@@ -4,8 +4,9 @@ from random import shuffle, randint, choice, random
 SUITS_FULL = ['C', 'D', 'S', 'H']
 VALUES_FULL = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 
-SUITS = ['S']
+SUITS = ['H']
 #VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+#SUITS = ['S']
 VALUES = ['9', '10', 'J', 'Q', 'K', 'A']
 
 
@@ -25,6 +26,7 @@ class Game:
 		self.hand_num = 0
 		self.cumulative_scores = [0] * num_players
 		self.hands_won = [0] * num_players
+		self.points_won = [0] * num_players
 		# Switches that get reset every hand
 		self.first_trick = True
 		self.hearts_broken = False
@@ -34,6 +36,7 @@ class Game:
 		self.show_NN_values = False
 		self.show_scores = False
 		self.show_final_Q = False
+		self.show_running_scores = False
 	
 	def set_hands(self, hands_list):
 		"""
@@ -56,6 +59,9 @@ class Game:
 				self.deck.append(card)
 		set_first_lead(players, self)
 		return players
+	
+	def update_points_won(self, points):
+		self.points_won = [sum(x) for x in zip(self.points_won, points)]
 
 
 class Card:

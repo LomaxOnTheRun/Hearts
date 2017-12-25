@@ -153,6 +153,14 @@ def show_Q(Q, model, game):
 ############################
 
 
+# NN structure for 4 cards:
+# - 12 binary inputs (trick, legal moves, card played)
+#   - 4 binary inputs for each category (one per card in play)
+# - Hidden layer (? nodes, starting with 20)
+# - 1 linear output, value of that play
+#   - Equivalent of current Q value
+
+
 def create_network_model(game):
 	model = Sequential()
 	model.add(Dense(20,
