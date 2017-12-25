@@ -3,14 +3,39 @@ from q_learning import *
 
 from sys import stdout
 
-
 # NOTES:
 # - I'm not shooting the moon for now (more complex), when I do:
 #   - Need to think of how to reward / punish (-26*4 points at end?)
 #   - Keep track of more history (other player scores / previously tricks)
 # - I'm not passing cards across at the start of hands (more complex)
 
-def run_game(game, hands_list=None):
+
+# NN structure for 4 cards:
+# - 12 binary inputs (trick, legal moves, card played)
+#   - 4 binary inputs for each category (one per card in play)
+# - Hidden layer (? nodes, starting with 20)
+# - 1 linear output, value of that play
+#   - Equivalent of current Q value
+
+
+
+#model.fit(test_x*100, test_y*100, epochs=5)
+#loss_and_metrics = model.evaluate(test_x, test_y)
+#print(loss_and_metrics)
+
+#x = np.array([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0])
+#x = x.reshape(1, 12)
+#print(x)
+#print(model.predict(x))
+
+# During training:
+# - model.fit(x_train, y_train, epochs=, batch_size=)
+# 
+# After training:
+# - score = model.evaluate(x_test, y_test, batch_size=)
+
+
+def run_game(game):
 	"""
 	Runs the game with metadata stored in 'game' for a number of hands equal to num_hands
 	"""
@@ -23,13 +48,13 @@ def run_game(game, hands_list=None):
 		hand_percentage = int((hand_num * 100.0) / game.num_hands) + 1
 		if hand_percentage > current_percentage:
 			current_percentage = hand_percentage
-			stdout.write('{}Running games [{}%]'.format('\b' * 20, current_percentage))
+			stdout.write('{}Running games [{}%]'.format('\b'*20, current_percentage))
 			stdout.flush()
 
 		# Game setup
 		players = set_up_game(hand_num, game)
-		if hands_list:
-			players = set_hands(hands_list, game)
+		if game.hands_list:
+			players = game.set_hands(game.hands_list)
 	
 		# Show cumulative scores per X number of games
 		if game.show_scores and hand_num % 10000 == 0:
@@ -62,7 +87,8 @@ def run_game(game, hands_list=None):
 					reward,
 					new_state_str,
 					game,
-					legal_moves
+					legal_moves,
+					model
 				)
 	
 			# Use Q to pick greedy choice
@@ -87,11 +113,11 @@ def run_game(game, hands_list=None):
 			reward,
 			'terminal',
 			game,
-			legal_moves
+			legal_moves,
+			model
 		)
 
 		# Show final scores
-		#show_final_scores(players)
 		reset_player_order(players)
 		for i, player in enumerate(players):
 			game.cumulative_scores[i] += player.points
@@ -108,16 +134,47 @@ def run_game(game, hands_list=None):
 			print('Hands won:\t\t{}'.format(game.hands_won))
 
 	if game.show_final_Q:
-		show_Q(Q)
+		show_Q(Q, model, game)
 	
 	return Q, game
 
 
-game = Game(num_players=2, num_hands=100000)
+game = Game(num_players=2, num_hands=100)
 #game.show_play = True
 #game.show_Q_values = True
 game.show_final_Q = True
 
-hands_list = [['SJ', 'SQ'], ['S10', 'SK']]
-Q, game = run_game(game, hands_list)
+hands_list = [['SJ', 'SQ', 'C4', 'D3'], ['S10', 'SK', 'H2', 'CK']]
+game.set_hands(hands_list)
+
+from keras.models import Sequential
+from keras.layers import Dense, Activation
+
+model = Sequential()
+model.add(Dense(20, activation='relu', input_shape=(24, )))#3 * len(game.deck),)))
+model.add(Dense(1, activation='linear'))
+model.compile(optimizer='sgd',		# Not sure about this
+			  loss='mse',			# Not sure about this either
+			  metrics=['accuracy'])
+
+test_x = [
+	[1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0],
+	[1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0],
+	[1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
+	[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+	[0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0],
+	[0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0],
+	[0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
+	[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0]
+]
+
+test_y = [0.0, -13.0, 0.0, -13.0, -11.7, 0.0, 0.0, 0.0]
+
+
+
+Q, game = run_game(game)
+state_str = 'SJSQD3H2_C4D3_SKCK'
+print(state_str)
+binary_array = state_str_to_array(state_str, game)
+print(array_to_state_str(binary_array, game))
 
