@@ -16,6 +16,7 @@ class Game:
 		self.num_players = num_players
 		self.num_hands = num_hands
 		self.deck = create_deck()
+		self.hands_list = None
 		# Learning hyperparameters
 		self.learning_rate = learning_rate
 		self.discount_factor = discount_factor
@@ -32,6 +33,28 @@ class Game:
 		self.show_Q_values = show_Q_values
 		self.show_scores = show_scores
 		self.show_final_Q = show_final_Q
+	
+	def set_hands(self, hands_list):
+		"""
+		Takes a list of list of card codes for values
+	
+		e.g. [['H2', 'H3'],  # Player 0
+			  ['H4', 'H5']]  # Player 1
+		"""
+		self.hands_list = hands_list
+		self.num_players = len(hands_list)
+		self.deck = []
+		
+		players = [Player(i) for i in range(len(hands_list))]
+		for index, hand in enumerate(hands_list):
+			player = players[index]
+			player.hand = []
+			for card_str in hand:
+				card = Card(card_str[0], card_str[1:])
+				player.hand.append(card)
+				self.deck.append(card)
+		set_first_lead(players, self)
+		return players
 
 
 class Card:
@@ -271,6 +294,12 @@ def show_final_scores(players):
 		print('player{} - {}'.format(player.id_val, player.points))
 
 
+def get_ordered_deck_codes(game):
+	sorted_deck = sorted(game.deck, key=lambda x: x.sort_value)
+	sorted_deck = [card.code for card in sorted_deck]
+	return sorted_deck
+
+
 ###################
 #   DEBUG UTILS   #
 ###################
@@ -280,27 +309,6 @@ def show_hands(players):
 	for player in players:
 		print('player{} - {}'.format(player.id_val, player.get_hand_codes()))
 
-
-def set_hands(hands_list, game):
-	"""
-	Takes a list of list of card codes for values
-	
-	e.g. [['H2', 'H3'],  # Player 0
-		  ['H4', 'H5']]  # Player 1
-	"""
-	if len(hands_list) != game.num_players:
-		raise Exception('Set hands list not equal to set number of players in game')
-	game.deck = []
-	players = [Player(i) for i in range(len(hands_list))]
-	for index, hand in enumerate(hands_list):
-		player = players[index]
-		player.hand = []
-		for card_str in hand:
-			card = Card(card_str[0], card_str[1:])
-			player.hand.append(card)
-			game.deck.append(card)
-	set_first_lead(players, game)
-	return players
 
 
 
