@@ -2,6 +2,7 @@ from game import *
 from q_learning import *
 
 from sys import stdout
+from itertools import permutations
 
 # NOTES:
 # - I'm not shooting the moon for now (more complex), when I do:
@@ -127,17 +128,14 @@ def run_game(game, do_learning=True):
 	if game.show_final_Q:
 		show_Q(Q, model, game)
 	
-	print('\nCumulative scores:\t{}'.format(game.cumulative_scores))
-	print('Hands won:\t\t{}'.format(game.hands_won))
-	total_points = sum(game.cumulative_scores)
-	player_0_points = float(game.cumulative_scores[0])
-	percentage_points = round(((player_0_points / total_points) * 100), 2)
-	print('% of points gained:\t{}%'.format(percentage_points))
+	if game.show_final_scores:
+		show_final_scores(game)
 	
 	return Q, model, game
 
 
 def test_model(num_hands, game):
+	"""Runs a random number of games with full greediness"""
 	print('\n#################\n#   Test runs   #\n#################\n')
 	# Reset scores
 	game.hand_num = 0
@@ -149,6 +147,35 @@ def test_model(num_hands, game):
 	game.num_hands = num_hands
 	game.greediness = 1.0
 	run_game(game, do_learning=False)
+
+
+def test_model_2(game):
+	"""Runs every possible combination of cards for every player, with full greediness"""
+	print('\n#################\n#   Test runs   #\n#################\n')
+	# Reset scores
+	num_players = game.num_players
+	game.hand_num = 0
+	game.cumulative_scores = [0] * num_players
+	game.hands_won = [0] * num_players
+	game.points_won = [0] * num_players
+	game.show_running_scores = False
+	game.show_final_scores = False
+	# Split cards into player hands
+	game.num_hands = 1
+	game.greediness = 1.0
+	card_orders = permutations(game.get_deck_codes())
+	num_cards = len(game.deck)
+	cards_per_hand = num_cards / num_players
+	assert cards_per_hand % 1 == 0
+	cards_per_hand = int(cards_per_hand)
+	for card_order in card_orders:
+		hands_list = []
+		for i in range(0, num_cards, cards_per_hand):
+			hands_list.append(card_order[i:i+cards_per_hand])
+		game.set_hands(hands_list)
+		# Run game without learning
+		run_game(game, do_learning=False)
+	show_final_scores(game)
 
 
 game = Game(num_players=2, num_hands=100000)
@@ -163,7 +190,7 @@ model = create_network_model(game)
 Q, model, game = run_game(game)
 
 # Run game to test model
-test_model(10000, game)
-
+#test_model(10000, game)
+test_model_2(game)
 
 

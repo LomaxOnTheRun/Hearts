@@ -37,6 +37,7 @@ class Game:
 		self.show_scores = False
 		self.show_final_Q = False
 		self.show_running_scores = False
+		self.show_final_scores = True
 	
 	def set_hands(self, hands_list):
 		"""
@@ -62,6 +63,9 @@ class Game:
 	
 	def update_points_won(self, points):
 		self.points_won = [sum(x) for x in zip(self.points_won, points)]
+	
+	def get_deck_codes(self):
+		return [card.code for card in self.deck]
 
 
 class Card:
@@ -305,6 +309,15 @@ def get_ordered_deck_codes(game):
 	sorted_deck = sorted(game.deck, key=lambda x: x.sort_value)
 	sorted_deck = [card.code for card in sorted_deck]
 	return sorted_deck
+
+
+def show_final_scores(game):
+	print('\nCumulative scores:\t{}'.format(game.cumulative_scores))
+	print('Hands won:\t\t{}'.format(game.hands_won))
+	total_points = sum(game.cumulative_scores)
+	player_0_points = float(game.cumulative_scores[0])
+	percentage_points = round(((player_0_points / total_points) * 100), 2)
+	print('% of points gained:\t{}%'.format(percentage_points))
 
 
 ###################
