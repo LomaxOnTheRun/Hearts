@@ -121,6 +121,10 @@ def run_game(game):
 		if hand_num == game.num_hands - 1:
 			print('\nCumulative scores:\t{}'.format(game.cumulative_scores))
 			print('Hands won:\t\t{}'.format(game.hands_won))
+			total_points = sum(game.cumulative_scores)
+			player_0_points = float(game.cumulative_scores[0])
+			percentage_points = round(((player_0_points / total_points) * 100), 2)
+			print('% of points gained:\t{}%'.format(percentage_points))
 		
 		if new_percentage:
 			current_percentage = hand_percentage
@@ -132,15 +136,15 @@ def run_game(game):
 	return Q, game
 
 
-game = Game(num_players=3, num_hands=100, greediness=1.0)
+game = Game(num_players=2, num_hands=1000000)
 #game.show_play = True
 #game.show_Q_values = True
 #game.show_NN_values = True
 #game.show_final_Q = True
 game.show_running_scores = True
 
-hands_list = [['SJ', 'SQ'], ['S10', 'SK']]
-game.set_hands(hands_list)
+#hands_list = [['SJ', 'SQ'], ['S10', 'SK']]
+#game.set_hands(hands_list)
 print([card.code for card in game.deck])
 
 model = create_network_model(game)
