@@ -150,8 +150,5 @@ print([card.code for card in game.deck])
 model = create_network_model(game)
 Q, game = run_game(game)
 
-#state_str = 'SJSQD3H2_C4D3_SKCK'
-#print(state_str)
-#binary_array = state_str_to_array(state_str, game)
-#print(array_to_state_str(binary_array, game))
+
 
