@@ -17,7 +17,7 @@ from sys import stdout
 
 
 
-def run_game(game):
+def run_game(game, do_learning=True):
 	"""
 	Runs the game with metadata stored in 'game' for a number of hands equal to num_hands
 	"""
@@ -63,16 +63,17 @@ def run_game(game):
 			if not game.first_trick:
 				player0 = get_player(players, 0)
 				legal_moves = player0.get_legal_moves(trick, game)
-				update_Q(
-					Q,
-					old_state_str,
-					action,
-					reward,
-					new_state_str,
-					game,
-					legal_moves,
-					model
-				)
+				if do_learning:
+					update_Q(
+						Q,
+						old_state_str,
+						action,
+						reward,
+						new_state_str,
+						game,
+						legal_moves,
+						model
+					)
 	
 			# Use Q to pick greedy choice
 			action = get_player0_choice(players, game, trick, Q, model)
@@ -89,16 +90,17 @@ def run_game(game):
 			old_state_str = new_state_str
 	
 		# Do final learning
-		update_Q(
-			Q,
-			old_state_str,
-			action,
-			reward,
-			'terminal',
-			game,
-			legal_moves,
-			model
-		)
+		if do_learning:
+			update_Q(
+				Q,
+				old_state_str,
+				action,
+				reward,
+				'terminal',
+				game,
+				legal_moves,
+				model
+			)
 
 		# Show final scores
 		reset_player_order(players)
@@ -117,14 +119,6 @@ def run_game(game):
 			row_format = '{:>15}' * game.num_players
 			print(row_format.format(*game.points_won))
 			game.points_won = [0] * game.num_players
-	
-		if hand_num == game.num_hands - 1:
-			print('\nCumulative scores:\t{}'.format(game.cumulative_scores))
-			print('Hands won:\t\t{}'.format(game.hands_won))
-			total_points = sum(game.cumulative_scores)
-			player_0_points = float(game.cumulative_scores[0])
-			percentage_points = round(((player_0_points / total_points) * 100), 2)
-			print('% of points gained:\t{}%'.format(percentage_points))
 		
 		if new_percentage:
 			current_percentage = hand_percentage
@@ -133,22 +127,43 @@ def run_game(game):
 	if game.show_final_Q:
 		show_Q(Q, model, game)
 	
-	return Q, game
+	print('\nCumulative scores:\t{}'.format(game.cumulative_scores))
+	print('Hands won:\t\t{}'.format(game.hands_won))
+	total_points = sum(game.cumulative_scores)
+	player_0_points = float(game.cumulative_scores[0])
+	percentage_points = round(((player_0_points / total_points) * 100), 2)
+	print('% of points gained:\t{}%'.format(percentage_points))
+	
+	return Q, model, game
 
 
-game = Game(num_players=2, num_hands=1000000)
+def test_model(num_hands, game):
+	print('\n#################\n#   Test runs   #\n#################\n')
+	# Reset scores
+	game.hand_num = 0
+	game.cumulative_scores = [0] * game.num_players
+	game.hands_won = [0] * game.num_players
+	game.points_won = [0] * game.num_players
+	game.show_running_scores = False
+	# Run game without learning
+	game.num_hands = num_hands
+	game.greediness = 1.0
+	run_game(game, do_learning=False)
+
+
+game = Game(num_players=2, num_hands=100000)
 #game.show_play = True
 #game.show_Q_values = True
 #game.show_NN_values = True
 #game.show_final_Q = True
 game.show_running_scores = True
 
-#hands_list = [['SJ', 'SQ'], ['S10', 'SK']]
-#game.set_hands(hands_list)
-print([card.code for card in game.deck])
-
+# Run game to learn
 model = create_network_model(game)
-Q, game = run_game(game)
+Q, model, game = run_game(game)
+
+# Run game to test model
+test_model(10000, game)
 
 
 
