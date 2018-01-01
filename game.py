@@ -105,6 +105,12 @@ class Player:
 	def get_hand_codes(self):
 		return [card.code for card in self.hand]
 	
+	def get_card_from_hand(self, card_code):
+		for card in self.hand:
+			if card.code == card_code:
+				return card
+		return None
+	
 	def play(self, card_code):
 		for index, card in enumerate(self.hand):
 			if card.code == card_code:
@@ -147,6 +153,15 @@ class Player:
 			print(self.get_hand_codes())
 		card_to_play = choice(legal_moves)
 		return card_to_play
+	
+	def get_lowest_playable_card(self, trick, game):
+		legal_moves = self.get_legal_moves(trick, game)
+		lowest_card = None
+		for card_code in legal_moves:
+			card = self.get_card_from_hand(card_code)
+			if not lowest_card or card.sort_value < lowest_card.sort_value:
+				lowest_card = card
+		return lowest_card.code
 	
 	def sort_hand(self):
 		sort_values = [card.sort_value for card in self.hand]
@@ -257,8 +272,12 @@ def split_players(players):
 def play_trick_for_players(players, game, trick):
 	"""Play the trick for a subgroup of players"""
 	for player in players:
+		
 		# For now, play randomly
-		card_to_play = player.get_random_legal_card_to_play(trick, game)
+		#card_to_play = player.get_random_legal_card_to_play(trick, game)
+		# Always play lowest value card
+		card_to_play = player.get_lowest_playable_card(trick, game)
+		
 		if game.show_play:
 			print(card_to_play + ' ' + str(player.get_hand_codes()))
 		card = player.play(card_to_play)

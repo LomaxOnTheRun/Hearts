@@ -152,6 +152,7 @@ def test_model(num_hands, game):
 def test_model_2(game):
 	"""Runs every possible combination of cards for every player, with full greediness"""
 	print('\n#################\n#   Test runs   #\n#################\n')
+	print('Testing all possible hand combinations...')
 	# Reset scores
 	num_players = game.num_players
 	game.hand_num = 0
@@ -178,7 +179,7 @@ def test_model_2(game):
 	show_final_scores(game)
 
 
-game = Game(num_players=2, num_hands=100000)
+game = Game(num_players=2, num_hands=1000)
 #game.show_play = True
 #game.show_Q_values = True
 #game.show_NN_values = True
@@ -192,5 +193,11 @@ Q, model, game = run_game(game)
 # Run game to test model
 #test_model(10000, game)
 test_model_2(game)
+
+# NOTE: For P2 always playing lowest value, P1 should get 38.33% of points -> model can get 36.67%...
+#       For P2 always playing highest value, P1 should get 48.33% of points
+# These values have been calculated by hand
+
+
 
 
