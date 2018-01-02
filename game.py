@@ -38,6 +38,7 @@ class Game:
 		self.show_final_Q = False
 		self.show_running_scores = False
 		self.show_final_scores = True
+		self.show_points_won_per_hand = False
 	
 	def set_hands(self, hands_list):
 		"""
@@ -330,13 +331,19 @@ def get_ordered_deck_codes(game):
 	return sorted_deck
 
 
-def show_final_scores(game):
-	print('\nCumulative scores:\t{}'.format(game.cumulative_scores))
-	print('Hands won:\t\t{}'.format(game.hands_won))
-	total_points = sum(game.cumulative_scores)
-	player_0_points = float(game.cumulative_scores[0])
-	percentage_points = round(((player_0_points / total_points) * 100), 2)
-	print('% of points gained:\t{}%'.format(percentage_points))
+def get_all_unique_combinations(hands_list,cards_per_hand):
+	"""
+	THIS CURRENTLY ONLY WORKS FOR 2 PLAYERS
+	"""
+	unique_hand0 = []  # A list of unique player0 hands
+	unique_hands = []
+	for hands in hands_list:
+		hand0 = list(hands[:cards_per_hand])
+		hand0.sort()
+		if not any([hand0 == unique_hand for unique_hand in unique_hand0]):
+			unique_hand0.append(hand0)
+			unique_hands.append(hands)
+	return unique_hands
 
 
 ###################
@@ -349,6 +356,18 @@ def show_hands(players):
 		print('player{} - {}'.format(player.id_val, player.get_hand_codes()))
 
 
+def show_final_scores(game):
+	print('\nCumulative scores:\t{}'.format(game.cumulative_scores))
+	print('Hands won:\t\t{}'.format(game.hands_won))
+	total_points = sum(game.cumulative_scores)
+	player_0_points = float(game.cumulative_scores[0])
+	percentage_points = round(((player_0_points / total_points) * 100), 2)
+	print('% of points gained:\t{}%'.format(percentage_points))
+
+
+def show_model_moves(game):
+	"""Show greedy moves for every possible model state"""
+	
 
 
 

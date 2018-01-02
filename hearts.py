@@ -161,30 +161,44 @@ def test_model_2(game):
 	game.points_won = [0] * num_players
 	game.show_running_scores = False
 	game.show_final_scores = False
-	# Split cards into player hands
+	# Make game network as well as possible
 	game.num_hands = 1
 	game.greediness = 1.0
-	card_orders = permutations(game.get_deck_codes())
+	# Calculate number of cards per hand
 	num_cards = len(game.deck)
 	cards_per_hand = num_cards / num_players
 	assert cards_per_hand % 1 == 0
 	cards_per_hand = int(cards_per_hand)
+	# Get a unique set of all card combinations possible
+	card_orders_all = permutations(game.get_deck_codes())
+	card_orders = get_all_unique_combinations(card_orders_all, cards_per_hand)
+	# Keep track of points won for every hand
+	points_won_for_hand = []
 	for card_order in card_orders:
+		game.points_won = [0] * num_players
+		# Split cards into player hands
 		hands_list = []
 		for i in range(0, num_cards, cards_per_hand):
 			hands_list.append(card_order[i:i+cards_per_hand])
 		game.set_hands(hands_list)
 		# Run game without learning
 		run_game(game, do_learning=False)
+		points_won_for_hand.append((hands_list, game.points_won))
 	show_final_scores(game)
+	
+	if game.show_points_won_per_hand:
+		print('\nBest score for every starting hand:\n')
+		for hands, points in points_won_for_hand:
+			print(hands, points)
 
 
-game = Game(num_players=2, num_hands=1000)
+game = Game(num_players=2, num_hands=100)
 #game.show_play = True
 #game.show_Q_values = True
 #game.show_NN_values = True
 #game.show_final_Q = True
-game.show_running_scores = True
+#game.show_running_scores = True
+game.show_points_won_per_hand = True
 
 # Run game to learn
 model = create_network_model(game)
@@ -194,8 +208,8 @@ Q, model, game = run_game(game)
 #test_model(10000, game)
 test_model_2(game)
 
-# NOTE: For P2 always playing lowest value, P1 should get 38.33% of points -> model can get 36.67%...
-#       For P2 always playing highest value, P1 should get 48.33% of points
+# NOTE: For P2 always playing lowest value, P1 should get 36.67% of the points
+#       For P2 always playing highest value, P1 should get 48.33% of the points
 # These values have been calculated by hand
 
 
