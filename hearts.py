@@ -36,9 +36,10 @@ def run_game(game, do_learning=True):
 			stdout.flush()
 
 		# Game setup
-		players = set_up_game(hand_num, game)
+		players = set_up_game(game)
 		if game.hands_list:
 			players = game.set_hands(game.hands_list)
+				
 	
 		# Show cumulative scores per X number of games
 		if game.show_scores and hand_num % 10000 == 0:
@@ -124,12 +125,16 @@ def run_game(game, do_learning=True):
 		if new_percentage:
 			current_percentage = hand_percentage
 			new_percentage = False
+			percentage_points = test_model_3(game)
+			game.percentage_points.append(percentage_points)
 
 	if game.show_final_Q:
 		show_Q(Q, model, game)
 	
 	if game.show_final_scores:
 		show_final_scores(game)
+	
+	print(game.percentage_points)
 	
 	return Q, model, game
 
@@ -185,11 +190,60 @@ def test_model_2(game):
 		run_game(game, do_learning=False)
 		points_won_for_hand.append((hands_list, game.points_won))
 	show_final_scores(game)
-	
-	if game.show_points_won_per_hand:
-		print('\nBest score for every starting hand:\n')
-		for hands, points in points_won_for_hand:
-			print(hands, points)
+	return points_won_for_hand
+
+
+def test_model_3(game):
+	"""Runs all unique combinations of hands once with greedy network, returns single percentage points value"""
+	# Calculate number of cards per hand
+	num_cards = len(game.deck)
+	cards_per_hand = int(num_cards / game.num_players)
+	# Get a unique set of all card combinations possible
+	card_sets_all = permutations(game.get_deck_codes())
+	card_sets = get_all_unique_combinations(card_sets_all, cards_per_hand)
+	#print(card_orders)
+	# Split cards into player hands
+	hands_list = split_card_set_into_hands(card_sets, num_cards, cards_per_hand)
+	# Run a single hand for each hand set
+	total_points = [0] * game.num_players
+	for hand_list in hands_list:
+		points = run_single_greedy_hand(game.num_players, hand_list)
+		print(points)
+		total_points = [sum(x) for x in zip(total_points, points)]
+	print(total_points)
+	percentage_points = get_percentage_points(total_points)
+	return percentage_points
+
+
+def split_card_set_into_hands(card_sets, num_cards, cards_per_hand):
+	"""Split a set of cards into tuples of hands"""
+	hands_list = []
+	for card_set in card_sets:
+		hand_list = []
+		for i in range(0, num_cards, cards_per_hand):
+			hand_list.append(card_set[i:i+cards_per_hand])
+		hands_list.append(hand_list)
+	return hands_list
+
+
+def run_single_greedy_hand(num_players, hands_list):
+	"""Run a single hand with no learning, returns points"""
+	Q = {}
+	game = Game(num_players=num_players, greediness=1.0, num_hands=1)
+	players = set_up_game(game)
+	players = game.set_hands(hands_list)
+	trick = start_trick(players, game)
+	action = get_player0_choice(players, game, trick, Q, model)
+	player0_points = finish_trick(players, game, trick, action)
+	while players[0].hand:
+		trick = start_trick(players, game)
+		action = get_player0_choice(players, game, trick, Q, model)
+		player0_points = finish_trick(players, game, trick, action)
+	points = [player.points for player in players]
+	return points
+
+
+
 
 
 game = Game(num_players=2, num_hands=100)
@@ -198,7 +252,7 @@ game = Game(num_players=2, num_hands=100)
 #game.show_NN_values = True
 #game.show_final_Q = True
 #game.show_running_scores = True
-game.show_points_won_per_hand = True
+#game.show_points_won_per_hand = True
 
 # Run game to learn
 model = create_network_model(game)
@@ -206,11 +260,17 @@ Q, model, game = run_game(game)
 
 # Run game to test model
 #test_model(10000, game)
-test_model_2(game)
+#points_won_for_hand = test_model_2(game)
+
+if game.show_points_won_per_hand:
+	show_best_score_for_hands(points_won_for_hand)
 
 # NOTE: For P2 always playing lowest value, P1 should get 36.67% of the points
 #       For P2 always playing highest value, P1 should get 48.33% of the points
 # These values have been calculated by hand
+#
+# For 2 players, 4 cards each, lowest card, fewest % of points is 33.21%
+#  - 10000 not enough, 100000 enough
 
 
 

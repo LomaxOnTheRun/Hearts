@@ -7,7 +7,8 @@ VALUES_FULL = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 SUITS = ['H']
 #VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 #SUITS = ['S']
-VALUES = ['9', '10', 'J', 'Q', 'K', 'A']
+#VALUES = ['9', '10', 'J', 'Q', 'K', 'A']
+VALUES = ['J', 'Q', 'K', 'A']
 
 
 class Game:
@@ -27,6 +28,7 @@ class Game:
 		self.cumulative_scores = [0] * num_players
 		self.hands_won = [0] * num_players
 		self.points_won = [0] * num_players
+		self.percentage_points = []
 		# Switches that get reset every hand
 		self.first_trick = True
 		self.hearts_broken = False
@@ -172,7 +174,7 @@ class Player:
 			del sort_values[min_index]
 
 
-def set_up_game(game_num, game):
+def set_up_game(game):
 	players = shuffle_and_deal_cards(game)
 	set_first_lead(players, game)
 	return players
@@ -356,19 +358,23 @@ def show_hands(players):
 		print('player{} - {}'.format(player.id_val, player.get_hand_codes()))
 
 
+def get_percentage_points(points_list):
+	total_points = sum(points_list)
+	player_0_points = float(points_list[0])
+	percentage_points = round(((player_0_points / total_points) * 100), 2)
+	return percentage_points
+
+
 def show_final_scores(game):
 	print('\nCumulative scores:\t{}'.format(game.cumulative_scores))
 	print('Hands won:\t\t{}'.format(game.hands_won))
-	total_points = sum(game.cumulative_scores)
-	player_0_points = float(game.cumulative_scores[0])
-	percentage_points = round(((player_0_points / total_points) * 100), 2)
+	percentage_points = get_percentage_points(game.cumulative_scores)
 	print('% of points gained:\t{}%'.format(percentage_points))
 
 
-def show_model_moves(game):
-	"""Show greedy moves for every possible model state"""
-	
-
-
+def show_best_score_for_hands(points_won_for_hand):
+	print('\nBest score for every starting hand:\n')
+	for hands, points in points_won_for_hand:
+		print(hands, points)
 
 
