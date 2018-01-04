@@ -208,9 +208,7 @@ def test_model_3(game):
 	total_points = [0] * game.num_players
 	for hand_list in hands_list:
 		points = run_single_greedy_hand(game.num_players, hand_list)
-		print(points)
 		total_points = [sum(x) for x in zip(total_points, points)]
-	print(total_points)
 	percentage_points = get_percentage_points(total_points)
 	return percentage_points
 
@@ -239,6 +237,7 @@ def run_single_greedy_hand(num_players, hands_list):
 		trick = start_trick(players, game)
 		action = get_player0_choice(players, game, trick, Q, model)
 		player0_points = finish_trick(players, game, trick, action)
+	reset_player_order(players)
 	points = [player.points for player in players]
 	return points
 
@@ -246,7 +245,7 @@ def run_single_greedy_hand(num_players, hands_list):
 
 
 
-game = Game(num_players=2, num_hands=100)
+game = Game(num_players=2, num_hands=10000)
 #game.show_play = True
 #game.show_Q_values = True
 #game.show_NN_values = True
