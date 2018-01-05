@@ -4,6 +4,8 @@ from q_learning import *
 from sys import stdout
 from itertools import permutations
 
+import matplotlib.pyplot as plt
+
 # NOTES:
 # - I'm not shooting the moon for now (more complex), when I do:
 #   - Need to think of how to reward / punish (-26*4 points at end?)
@@ -13,6 +15,7 @@ from itertools import permutations
 
 
 # FUTURE THOUGHTS:
+# - REMOVE Q?
 # - CALCULATE BY HAND BEST ODDS OF WINNING WITH SUBSET OF CARDS, SEE HOW CLOSE NET GETS
 # - TRAIN NETWORK WITH SUBSETS OF CARDS, AND EXPAND TO FILL ARRAYS WITH ZEROS
 
@@ -134,7 +137,10 @@ def run_game(game, do_learning=True):
 	if game.show_final_scores:
 		show_final_scores(game)
 	
-	print(game.percentage_points)
+	# Do final assessment and show total
+	percentage_points = test_model_3(game)
+	game.percentage_points.append(percentage_points)
+	print('\n', game.percentage_points, '\n')
 	
 	return Q, model, game
 
@@ -242,10 +248,22 @@ def run_single_greedy_hand(num_players, hands_list):
 	return points
 
 
+def show_percentage_points_graph(game):
+	num_points = len(game.percentage_points)
+	x_step = int(game.num_hands / (num_points - 1))
+	x = range(0, game.num_hands+1, x_step)
+	y = game.percentage_points
+	plt.plot(x, y)
+	plt.ylabel('% of points gained')
+	plt.xlabel('Number of hands played')
+	plt.title('% points earned by Player 0 ({} total players)\n' \
+			  'Deck: {}'.format(game.num_players, game.get_deck_codes()))
+	plt.show()
 
 
 
-game = Game(num_players=2, num_hands=10000)
+
+game = Game(num_players=2, num_hands=100000)
 #game.show_play = True
 #game.show_Q_values = True
 #game.show_NN_values = True
@@ -257,12 +275,15 @@ game = Game(num_players=2, num_hands=10000)
 model = create_network_model(game)
 Q, model, game = run_game(game)
 
+# Show graph of points earned
+show_percentage_points_graph(game)
+
 # Run game to test model
 #test_model(10000, game)
 #points_won_for_hand = test_model_2(game)
 
-if game.show_points_won_per_hand:
-	show_best_score_for_hands(points_won_for_hand)
+#if game.show_points_won_per_hand:
+#	show_best_score_for_hands(points_won_for_hand)
 
 # NOTE: For P2 always playing lowest value, P1 should get 36.67% of the points
 #       For P2 always playing highest value, P1 should get 48.33% of the points
