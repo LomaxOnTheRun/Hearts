@@ -1,4 +1,5 @@
 from random import shuffle, randint, choice, random
+from itertools import combinations
 
 
 SUITS_FULL = ['C', 'D', 'S', 'H']
@@ -41,6 +42,8 @@ class Game:
 		self.show_running_scores = False
 		self.show_final_scores = True
 		self.show_points_won_per_hand = False
+		# Testing stuff
+		self.unique_hand_codes = self.get_unique_hand_codes()
 	
 	def set_hands(self, hands_list):
 		"""
@@ -62,6 +65,7 @@ class Game:
 				player.hand.append(card)
 				self.deck.append(card)
 		set_first_lead(players, self)
+		self.unique_hands = self.get_unique_hand_codes()
 		return players
 	
 	def update_points_won(self, points):
@@ -69,6 +73,15 @@ class Game:
 	
 	def get_deck_codes(self):
 		return [card.code for card in self.deck]
+	
+	def get_unique_hand_codes(self):
+		"""Split a set of cards into tuples of hands - THIS ONLY WORKS FOR 2 PLAYERS"""
+		deck_codes = self.get_deck_codes()
+		num_cards_in_hand = int(len(deck_codes) / self.num_players)
+		unique_hands = [hand for hand in combinations(deck_codes, num_cards_in_hand)]
+		unique_hands_2 = [hand for hand in unique_hands]
+		unique_hands_2.reverse()
+		return list(zip(unique_hands, unique_hands_2))
 
 
 class Card:

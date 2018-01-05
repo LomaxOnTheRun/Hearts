@@ -15,6 +15,8 @@ import matplotlib.pyplot as plt
 
 
 # FUTURE THOUGHTS:
+# - ADD LOGGING TO SEE WHERE MOST CYCLES ARE GOING
+# - USE itertools.combinations(...) TO MAKE MORE EFFICIENT TESTS
 # - REMOVE Q?
 # - CALCULATE BY HAND BEST ODDS OF WINNING WITH SUBSET OF CARDS, SEE HOW CLOSE NET GETS
 # - TRAIN NETWORK WITH SUBSETS OF CARDS, AND EXPAND TO FILL ARRAYS WITH ZEROS
@@ -201,41 +203,21 @@ def test_model_2(game):
 
 def test_model_3(game):
 	"""Runs all unique combinations of hands once with greedy network, returns single percentage points value"""
-	# Calculate number of cards per hand
-	num_cards = len(game.deck)
-	cards_per_hand = int(num_cards / game.num_players)
-	# Get a unique set of all card combinations possible
-	card_sets_all = permutations(game.get_deck_codes())
-	card_sets = get_all_unique_combinations(card_sets_all, cards_per_hand)
-	#print(card_orders)
-	# Split cards into player hands
-	hands_list = split_card_set_into_hands(card_sets, num_cards, cards_per_hand)
 	# Run a single hand for each hand set
 	total_points = [0] * game.num_players
-	for hand_list in hands_list:
-		points = run_single_greedy_hand(game.num_players, hand_list)
+	for hand_codes in game.unique_hand_codes:
+		points = run_single_greedy_hand(game.num_players, hand_codes)
 		total_points = [sum(x) for x in zip(total_points, points)]
 	percentage_points = get_percentage_points(total_points)
 	return percentage_points
 
 
-def split_card_set_into_hands(card_sets, num_cards, cards_per_hand):
-	"""Split a set of cards into tuples of hands"""
-	hands_list = []
-	for card_set in card_sets:
-		hand_list = []
-		for i in range(0, num_cards, cards_per_hand):
-			hand_list.append(card_set[i:i+cards_per_hand])
-		hands_list.append(hand_list)
-	return hands_list
-
-
-def run_single_greedy_hand(num_players, hands_list):
+def run_single_greedy_hand(num_players, hand_codes):
 	"""Run a single hand with no learning, returns points"""
 	Q = {}
 	game = Game(num_players=num_players, greediness=1.0, num_hands=1)
 	players = set_up_game(game)
-	players = game.set_hands(hands_list)
+	players = game.set_hands(hand_codes)
 	trick = start_trick(players, game)
 	action = get_player0_choice(players, game, trick, Q, model)
 	player0_points = finish_trick(players, game, trick, action)
@@ -263,7 +245,7 @@ def show_percentage_points_graph(game):
 
 
 
-game = Game(num_players=2, num_hands=100000)
+game = Game(num_players=2, num_hands=100)
 #game.show_play = True
 #game.show_Q_values = True
 #game.show_NN_values = True
@@ -273,10 +255,13 @@ game = Game(num_players=2, num_hands=100000)
 
 # Run game to learn
 model = create_network_model(game)
-Q, model, game = run_game(game)
+
+#Q, model, game = run_game(game)
+import cProfile
+cProfile.run('run_game(game)')
 
 # Show graph of points earned
-show_percentage_points_graph(game)
+#show_percentage_points_graph(game)
 
 # Run game to test model
 #test_model(10000, game)
