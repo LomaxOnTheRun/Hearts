@@ -15,8 +15,6 @@ import matplotlib.pyplot as plt
 
 
 # FUTURE THOUGHTS:
-# - ADD LOGGING TO SEE WHERE MOST CYCLES ARE GOING
-# - USE itertools.combinations(...) TO MAKE MORE EFFICIENT TESTS
 # - REMOVE Q?
 # - CALCULATE BY HAND BEST ODDS OF WINNING WITH SUBSET OF CARDS, SEE HOW CLOSE NET GETS
 # - TRAIN NETWORK WITH SUBSETS OF CARDS, AND EXPAND TO FILL ARRAYS WITH ZEROS
@@ -27,9 +25,6 @@ def run_game(game, do_learning=True):
 	"""
 	Runs the game with metadata stored in 'game' for a number of hands equal to num_hands
 	"""
-	# Create a Q dictionary, with keys matching to states
-	Q = {}
-	
 	new_percentage = False
 	current_percentage = 0
 	for hand_num in range(game.num_hands):
@@ -44,8 +39,8 @@ def run_game(game, do_learning=True):
 		players = set_up_game(game)
 		if game.hands_list:
 			players = game.set_hands(game.hands_list)
-				
-	
+
+
 		# Show cumulative scores per X number of games
 		if game.show_scores and hand_num % 10000 == 0:
 			print('\n#{} - {}'.format(hand_num, game.cumulative_scores))
@@ -54,7 +49,7 @@ def run_game(game, do_learning=True):
 		# First trick
 		trick = start_trick(players, game)
 		old_state_str = get_state_str(trick, players, game)
-		action = get_player0_choice(players, game, trick, Q, model)
+		action = get_player0_choice(players, game, trick, model)
 		player0_points = finish_trick(players, game, trick, action)
 		reward = get_reward(player0_points)
 		if game.show_Q_values:
@@ -65,14 +60,13 @@ def run_game(game, do_learning=True):
 			# Get state
 			trick = start_trick(players, game)
 			new_state_str = get_state_str(trick, players, game)
-	
+
 			# Update Q
 			if not game.first_trick:
 				player0 = get_player(players, 0)
 				legal_moves = player0.get_legal_moves(trick, game)
 				if do_learning:
 					update_Q(
-						Q,
 						old_state_str,
 						action,
 						reward,
@@ -81,25 +75,24 @@ def run_game(game, do_learning=True):
 						legal_moves,
 						model
 					)
-	
+
 			# Use Q to pick greedy choice
-			action = get_player0_choice(players, game, trick, Q, model)
-	
+			action = get_player0_choice(players, game, trick, model)
+
 			# Get next state
 			player0_points = finish_trick(players, game, trick, action)
-	
+
 			# Get reward
 			reward = get_reward(player0_points)
 			if game.show_Q_values:
 				print(action + ' = ' + str(reward) + ' points')
-	
+
 			# Move new state to old state
 			old_state_str = new_state_str
-	
+
 		# Do final learning
 		if do_learning:
 			update_Q(
-				Q,
 				old_state_str,
 				action,
 				reward,
@@ -113,7 +106,7 @@ def run_game(game, do_learning=True):
 		reset_player_order(players)
 		for i, player in enumerate(players):
 			game.cumulative_scores[i] += player.points
-	
+
 		# Get winners for current game
 		points = [player.points for player in players]
 		game.update_points_won(points)
@@ -121,12 +114,12 @@ def run_game(game, do_learning=True):
 		winners = [index for index, point in enumerate(points) if point == min_points]
 		for winner in winners:
 			game.hands_won[winner] += 1
-		
+
 		if game.show_running_scores and new_percentage:
 			row_format = '{:>15}' * game.num_players
 			print(row_format.format(*game.points_won))
 			game.points_won = [0] * game.num_players
-		
+
 		if new_percentage:
 			current_percentage = hand_percentage
 			new_percentage = False
@@ -134,17 +127,17 @@ def run_game(game, do_learning=True):
 			game.percentage_points.append(percentage_points)
 
 	if game.show_final_Q:
-		show_Q(Q, model, game)
-	
+		show_Q(model, game)
+
 	if game.show_final_scores:
 		show_final_scores(game)
-	
+
 	# Do final assessment and show total
 	percentage_points = test_model_3(game)
 	game.percentage_points.append(percentage_points)
 	print('\n', game.percentage_points, '\n')
-	
-	return Q, model, game
+
+	return model, game
 
 
 def test_model(num_hands, game):
@@ -214,16 +207,15 @@ def test_model_3(game):
 
 def run_single_greedy_hand(num_players, hand_codes):
 	"""Run a single hand with no learning, returns points"""
-	Q = {}
 	game = Game(num_players=num_players, greediness=1.0, num_hands=1)
 	players = set_up_game(game)
 	players = game.set_hands(hand_codes)
 	trick = start_trick(players, game)
-	action = get_player0_choice(players, game, trick, Q, model)
+	action = get_player0_choice(players, game, trick, model)
 	player0_points = finish_trick(players, game, trick, action)
 	while players[0].hand:
 		trick = start_trick(players, game)
-		action = get_player0_choice(players, game, trick, Q, model)
+		action = get_player0_choice(players, game, trick, model)
 		player0_points = finish_trick(players, game, trick, action)
 	reset_player_order(players)
 	points = [player.points for player in players]
@@ -245,7 +237,7 @@ def show_percentage_points_graph(game):
 
 
 
-game = Game(num_players=2, num_hands=100)
+game = Game(num_players=2, num_hands=10000)
 #game.show_play = True
 #game.show_Q_values = True
 #game.show_NN_values = True
@@ -256,12 +248,12 @@ game = Game(num_players=2, num_hands=100)
 # Run game to learn
 model = create_network_model(game)
 
-#Q, model, game = run_game(game)
-import cProfile
-cProfile.run('run_game(game)')
+model, game = run_game(game)
+#import cProfile
+#cProfile.run('run_game(game)')
 
 # Show graph of points earned
-#show_percentage_points_graph(game)
+show_percentage_points_graph(game)
 
 # Run game to test model
 #test_model(10000, game)
@@ -276,7 +268,3 @@ cProfile.run('run_game(game)')
 #
 # For 2 players, 4 cards each, lowest card, fewest % of points is 33.21%
 #  - 10000 not enough, 100000 enough
-
-
-
-

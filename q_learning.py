@@ -5,8 +5,8 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation
 
 # For hands_list = [['SJ', 'SQ'], ['S10', 'SK']]
-# 
-# Q: 
+#
+# Q:
 #	S10_SJSQ_SJ : 0.0
 #	S10_SJSQ_SQ : -1.3
 #	S10_SJ_SJ : 0.0
@@ -25,7 +25,7 @@ from keras.layers import Dense, Activation
 #  since 'played' will always be a subgroup of 'available to play'
 
 
-def get_player0_choice(players, game, trick, Q, model):
+def get_player0_choice(players, game, trick, model):
 	"""Gets greedy choice"""
 	player0 = get_player(players, 0)
 	#player0_card_code = input('This is your hand:\n{}\nCard to play: '.format(player0.get_hand_codes()))
@@ -34,12 +34,6 @@ def get_player0_choice(players, game, trick, Q, model):
 	legal_moves = player0.get_legal_moves(trick, game)
 	state_str = get_state_str(trick, players, game)
 	Q_keys = [get_Q_key(state_str, move) for move in legal_moves]
-	# Q values
-	Q_values = [get_Q_value(Q, key) for key in Q_keys]
-	if game.show_Q_values:
-		for i in range(len(Q_keys)):
-			print('{} -> {}'.format(Q_keys[i], Q_values[i]))
-	max_Q_value = max(Q_values)
 	# NN values
 	NN_values = [get_NN_output(model, key, game) for key in Q_keys]
 	if game.show_NN_values:
@@ -49,10 +43,8 @@ def get_player0_choice(players, game, trick, Q, model):
 	# Choose
 	best_moves = []
 	other_moves = []
-#	for index, value in enumerate(Q_values):
 	for index, value in enumerate(NN_values):
 		move = legal_moves[index]
-#		if value == max_Q_value:
 		if value == max_NN_value:
 			best_moves.append(move)
 		else:
@@ -68,15 +60,6 @@ def get_player0_choice(players, game, trick, Q, model):
 def get_Q_key(state_str, action):
 	"""Returns string representation of trick and valid choices (i.e. state)"""
 	return state_str + '_' + action
-
-
-def get_Q_value(Q, key):
-	"""Return Q value if exists, otherwise create one"""
-	if key in Q:
-		return Q[key]
-	else:
-		Q[key] = 0
-		return 0
 
 
 def get_state_str(trick, players, game):
@@ -102,45 +85,41 @@ def get_reward(player0_points):
 	return -player0_points
 
 
-def update_Q(Q, old_state_str, old_action, reward, new_state_str, game, legal_moves, model):
+def update_Q(old_state_str, old_action, reward, new_state_str, game, legal_moves, model):
 	"""Does what it says on the tin
-	
+
 	TODO: CHANGE THIS TO UN-SIGMOID VALUE TO GET 'OLD_Q_VALUE' WHICH GETS USED FOR EQUATIONS,
 		  THEN RE-SIGMOID IT TO GET VALUE TO TRAIN NETWORK WITH
-	
+
 	"""
-	# Get old_Q_value
+	# Get old Q value
 	old_Q_key = get_Q_key(old_state_str, old_action)
-	old_Q_value = get_Q_value(Q, old_Q_key)
 	old_NN_value = get_NN_output(model, old_Q_key, game)
-	
+
 	# Get max Q_value for new state
 	if new_state_str is 'terminal':
 		max_next_Q_value = 0
 		max_next_NN_value = 0
 	else:
 		next_Q_keys = [get_Q_key(new_state_str, move) for move in legal_moves]
-		next_Q_values = [get_Q_value(Q, key) for key in next_Q_keys]
 		next_NN_values = [get_NN_output(model, key, game) for key in next_Q_keys]
-		max_next_Q_value = max(next_Q_values)
 		max_next_NN_value = max(next_NN_values)
-	
+
 	# Get new Q value
-	new_Q_value = old_Q_value + game.learning_rate * (reward + game.discount_factor * max_next_Q_value - old_Q_value)
 	new_NN_value = old_NN_value + game.learning_rate * (reward + game.discount_factor * max_next_NN_value - old_NN_value)
-	Q[old_Q_key] = new_Q_value
 	model.fit(get_NN_state(old_Q_key, game), new_NN_value, epochs=1, verbose=0)
 	if game.show_Q_values:
-		print('{} -> {}'.format(old_Q_key, new_Q_value))
+		print('{} -> {}'.format(old_Q_key, new_NN_value))
 
 
-def show_Q(Q, model, game):
-	keys = list(Q.keys())
+def show_Q(model, game):
+	# TODO: To use this, need to create these from game.unique_hand_codes +
+	#		cards played in trick + card played
+	keys = create_keys()  # This doesn't exist yet...
 	keys.sort()
-	row_format ="{:>15}" * 3
+	row_format ="{:>15}" * 2
 	print()
 	for key in keys:
-		Q_value = '{} (Q)'.format(round(Q[key], 2))
 		NN_value = '{} (NN)'.format(round(float(get_NN_output(model, key, game)[0][0]), 2))
 		print(row_format.format(key, Q_value, NN_value))
 	print()
@@ -209,15 +188,3 @@ def array_to_state_str(array, game):
 				state_str += deck_codes[index]
 		state_str += '_'
 	return state_str[:-1]
-
-
-
-
-
-
-
-
-
-
-
-
