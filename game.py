@@ -8,8 +8,8 @@ VALUES_FULL = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 SUITS = ['H']
 #VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 #SUITS = ['S']
-#VALUES = ['5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
-VALUES = ['9', '10', 'J', 'Q', 'K', 'A']
+VALUES = ['5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+#VALUES = ['9', '10', 'J', 'Q', 'K', 'A']
 
 
 class Game:
@@ -388,3 +388,10 @@ def show_best_score_for_hands(points_won_for_hand):
 	print('\nBest score for every starting hand:\n')
 	for hands, points in points_won_for_hand:
 		print(hands, points)
+
+
+def show_cummulative_scores(game, hand_num):
+	# TODO: If we keep this in, add ability to set how often we show scores
+	if game.show_scores and hand_num % 10000 == 0:
+		print('\n#{} - {}'.format(hand_num, game.cumulative_scores))
+		game.cumulative_scores = [0] * num_players
