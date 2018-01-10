@@ -237,10 +237,9 @@ def show_percentage_points_graph(game):
 
 
 
-game = Game(num_players=2, num_hands=10000)
+game = Game(num_players=2, num_hands=100)
 #game.show_play = True
 #game.show_Q_values = True
-#game.show_NN_values = True
 #game.show_final_Q = True
 #game.show_running_scores = True
 #game.show_points_won_per_hand = True

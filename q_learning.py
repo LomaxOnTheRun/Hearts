@@ -34,18 +34,18 @@ def get_player0_choice(players, game, trick, model):
 	legal_moves = player0.get_legal_moves(trick, game)
 	state_str = get_state_str(trick, players, game)
 	Q_keys = [get_Q_key(state_str, move) for move in legal_moves]
-	# NN values
-	NN_values = [get_NN_output(model, key, game) for key in Q_keys]
-	if game.show_NN_values:
+	# Q values, from the output of the neural network
+	Q_values = [get_NN_output(model, key, game) for key in Q_keys]
+	if game.show_Q_values:
 		for i in range(len(Q_keys)):
 			print('{} -> {}'.format(Q_keys[i], Q_values[i]))
-	max_NN_value = max(NN_values)
+	max_Q_value = max(Q_values)
 	# Choose
 	best_moves = []
 	other_moves = []
-	for index, value in enumerate(NN_values):
+	for index, value in enumerate(Q_values):
 		move = legal_moves[index]
-		if value == max_NN_value:
+		if value == max_Q_value:
 			best_moves.append(move)
 		else:
 			other_moves.append(move)
@@ -94,22 +94,21 @@ def update_Q(old_state_str, old_action, reward, new_state_str, game, legal_moves
 	"""
 	# Get old Q value
 	old_Q_key = get_Q_key(old_state_str, old_action)
-	old_NN_value = get_NN_output(model, old_Q_key, game)
+	old_Q_value = get_NN_output(model, old_Q_key, game)
 
 	# Get max Q_value for new state
 	if new_state_str is 'terminal':
 		max_next_Q_value = 0
-		max_next_NN_value = 0
 	else:
 		next_Q_keys = [get_Q_key(new_state_str, move) for move in legal_moves]
-		next_NN_values = [get_NN_output(model, key, game) for key in next_Q_keys]
-		max_next_NN_value = max(next_NN_values)
+		next_Q_values = [get_NN_output(model, key, game) for key in next_Q_keys]
+		max_next_Q_value = max(next_Q_values)
 
 	# Get new Q value
-	new_NN_value = old_NN_value + game.learning_rate * (reward + game.discount_factor * max_next_NN_value - old_NN_value)
-	model.fit(get_NN_state(old_Q_key, game), new_NN_value, epochs=1, verbose=0)
+	new_Q_value = old_Q_value + game.learning_rate * (reward + game.discount_factor * max_next_Q_value - old_Q_value)
+	model.fit(get_Q_state(old_Q_key, game), new_Q_value, epochs=1, verbose=0)
 	if game.show_Q_values:
-		print('{} -> {}'.format(old_Q_key, new_NN_value))
+		print('{} -> {}'.format(old_Q_key, new_Q_value))
 
 
 def show_Q(model, game):
@@ -152,15 +151,15 @@ def create_network_model(game):
 	return model
 
 
-def get_NN_state(Q_key, game):
-	NN_state = state_str_to_array(Q_key, game)
-	NN_state = np.array(NN_state)
-	NN_state = NN_state.reshape(1, 3 * len(game.deck))
-	return NN_state
+def get_Q_state(Q_key, game):
+	Q_state_array = state_str_to_array(Q_key, game)
+	Q_state = np.array(Q_state_array)
+	Q_state = Q_state.reshape(1, 3 * len(game.deck))
+	return Q_state
 
 
 def get_NN_output(model, old_Q_key, game):
-	input_vector = get_NN_state(old_Q_key, game)
+	input_vector = get_Q_state(old_Q_key, game)
 	return model.predict(input_vector, batch_size=1)
 
 

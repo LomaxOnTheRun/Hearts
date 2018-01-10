@@ -8,8 +8,8 @@ VALUES_FULL = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 SUITS = ['H']
 #VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 #SUITS = ['S']
-VALUES = ['5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
-#VALUES = ['J', 'Q', 'K', 'A']
+#VALUES = ['5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+VALUES = ['9', '10', 'J', 'Q', 'K', 'A']
 
 
 class Game:
@@ -36,7 +36,6 @@ class Game:
 		# Debug options
 		self.show_play = False
 		self.show_Q_values = False
-		self.show_NN_values = False
 		self.show_scores = False
 		self.show_final_Q = False
 		self.show_running_scores = False
@@ -44,18 +43,18 @@ class Game:
 		self.show_points_won_per_hand = False
 		# Testing stuff
 		self.unique_hand_codes = self.get_unique_hand_codes()
-	
+
 	def set_hands(self, hands_list):
 		"""
 		Takes a list of list of card codes for values
-	
+
 		e.g. [['H2', 'H3'],  # Player 0
 			  ['H4', 'H5']]  # Player 1
 		"""
 		self.hands_list = hands_list
 		self.num_players = len(hands_list)
 		self.deck = []
-		
+
 		players = [Player(i) for i in range(len(hands_list))]
 		for index, hand in enumerate(hands_list):
 			player = players[index]
@@ -67,13 +66,13 @@ class Game:
 		set_first_lead(players, self)
 		self.unique_hands = self.get_unique_hand_codes()
 		return players
-	
+
 	def update_points_won(self, points):
 		self.points_won = [sum(x) for x in zip(self.points_won, points)]
-	
+
 	def get_deck_codes(self):
 		return [card.code for card in self.deck]
-	
+
 	def get_unique_hand_codes(self):
 		"""Split a set of cards into tuples of hands - THIS ONLY WORKS FOR 2 PLAYERS"""
 		deck_codes = self.get_deck_codes()
@@ -94,14 +93,14 @@ class Card:
 
 	def __str__(self):
 		return self.code
-	
+
 	def get_value(self, value_str):
 		royals = {'J': 11, 'Q': 12, 'K': 13, 'A': 14}
 		if value_str in royals:
 			return royals[value_str]
 		else:
 			return int(value_str)
-	
+
 	def get_points(self):
 		if self.code == 'SQ':
 			return 13
@@ -117,22 +116,22 @@ class Player:
 		self.points = 0
 		self.hand = []
 		self.lead = False
-	
+
 	def get_hand_codes(self):
 		return [card.code for card in self.hand]
-	
+
 	def get_card_from_hand(self, card_code):
 		for card in self.hand:
 			if card.code == card_code:
 				return card
 		return None
-	
+
 	def play(self, card_code):
 		for index, card in enumerate(self.hand):
 			if card.code == card_code:
 				self.lead = False
 				return self.hand.pop(index)
-	
+
 	def get_legal_moves(self, trick, game):
 		hand_codes = self.get_hand_codes()
 		# If lead
@@ -160,7 +159,7 @@ class Player:
 			if not legal_moves:
 				return hand_codes
 			return legal_moves
-	
+
 	def get_random_legal_card_to_play(self, trick, game):
 		legal_moves = self.get_legal_moves(trick, game)
 		if not legal_moves:
@@ -169,7 +168,7 @@ class Player:
 			print(self.get_hand_codes())
 		card_to_play = choice(legal_moves)
 		return card_to_play
-	
+
 	def get_lowest_playable_card(self, trick, game):
 		legal_moves = self.get_legal_moves(trick, game)
 		lowest_card = None
@@ -178,7 +177,7 @@ class Player:
 			if not lowest_card or card.sort_value < lowest_card.sort_value:
 				lowest_card = card
 		return lowest_card.code
-	
+
 	def sort_hand(self):
 		sort_values = [card.sort_value for card in self.hand]
 		while sort_values:
@@ -252,7 +251,7 @@ def get_lowest_card(game):
 		for index, suit in enumerate(SUITS_FULL):
 			if card.suit == suit:
 				suit_split_cards[index].append(card)
-	
+
 	for suit_cards in suit_split_cards:
 		if suit_cards:
 			min_card = suit_cards[0]
@@ -288,12 +287,12 @@ def split_players(players):
 def play_trick_for_players(players, game, trick):
 	"""Play the trick for a subgroup of players"""
 	for player in players:
-		
+
 		# For now, play randomly
 		#card_to_play = player.get_random_legal_card_to_play(trick, game)
 		# Always play lowest value card
 		card_to_play = player.get_lowest_playable_card(trick, game)
-		
+
 		if game.show_play:
 			print(card_to_play + ' ' + str(player.get_hand_codes()))
 		card = player.play(card_to_play)
@@ -389,5 +388,3 @@ def show_best_score_for_hands(points_won_for_hand):
 	print('\nBest score for every starting hand:\n')
 	for hands, points in points_won_for_hand:
 		print(hands, points)
-
-
