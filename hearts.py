@@ -35,22 +35,13 @@ def run_game(game, run_tests=False):
 			stdout.write('{}Running games [{}%]'.format('\b'*20, hand_percentage))
 			stdout.flush()
 
+		# Show cumulative scores per X number of games
+		show_cummulative_scores(game, hand_num)
+
 		# Game setup
 		players = set_up_game(game)
 		if game.hands_list:
 			players = game.set_hands(game.hands_list)
-
-		# Show cumulative scores per X number of games
-		show_cummulative_scores(game, hand_num)
-
-		# First trick
-#		trick = start_trick(players, game)
-#		old_state_str = get_state_str(trick, players, game)
-#		action = get_player0_choice(players, game, trick, model)
-#		player0_points = finish_trick(players, game, trick, action)
-#		reward = get_reward(player0_points)
-#		if game.show_Q_values:
-#			print(action + ' = ' + str(reward) + ' points')
 
 		# This gets set after first hand
 		old_state_str = None
@@ -62,7 +53,6 @@ def run_game(game, run_tests=False):
 			new_state_str = get_state_str(trick, players, game)
 
 			# Update Q
-#			if not game.first_trick:
 			if old_state_str:  # And therefore not first trick
 				player0 = get_player(players, 0)
 				legal_moves = player0.get_legal_moves(trick, game)
@@ -101,11 +91,10 @@ def run_game(game, run_tests=False):
 			model
 		)
 
-		# Reset old_state_str
-		#old_state_str = None
-
-		# Show final scores
+		# This keeps learning player at start
 		reset_player_order(players)
+
+		# Update cummulative scores
 		for i, player in enumerate(players):
 			game.cumulative_scores[i] += player.points
 
@@ -184,7 +173,7 @@ def show_percentage_points_graph(game):
 
 
 
-game = Game(num_players=2, num_hands=100)
+game = Game(num_players=2, num_hands=10000)
 profile_game = False
 #game.show_play = True
 #game.show_Q_values = True
