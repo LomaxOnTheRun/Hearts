@@ -1,5 +1,8 @@
 from random import shuffle, randint, choice, random
 from itertools import combinations
+from sys import stdout
+
+import matplotlib.pyplot as plt
 
 
 SUITS_FULL = ['C', 'D', 'S', 'H']
@@ -8,8 +11,8 @@ VALUES_FULL = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 SUITS = ['H']
 #VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 #SUITS = ['S']
-VALUES = ['5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
-#VALUES = ['9', '10', 'J', 'Q', 'K', 'A']
+#VALUES = ['5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+VALUES = ['9', '10', 'J', 'Q', 'K', 'A']
 
 
 class Game:
@@ -43,6 +46,10 @@ class Game:
 		self.show_points_won_per_hand = False
 		# Testing stuff
 		self.unique_hand_codes = self.get_unique_hand_codes()
+		self.run_assessment_tests = False
+		# Percentage tracker
+		self.current_percentage = 0
+		self.new_percentage = False
 
 	def set_hands(self, hands_list):
 		"""
@@ -91,7 +98,7 @@ class Card:
 		self.points = self.get_points()
 		self.sort_value = 100 * SUITS_FULL.index(suit) + VALUES_FULL.index(value_str)
 
-	def __str__(self):
+	def __repr__(self):
 		return self.code
 
 	def get_value(self, value_str):
@@ -188,6 +195,8 @@ class Player:
 
 def set_up_game(game):
 	players = shuffle_and_deal_cards(game)
+	if game.hands_list:
+		players = game.set_hands(game.hands_list)
 	set_first_lead(players, game)
 	return players
 
@@ -395,3 +404,75 @@ def show_cummulative_scores(game, hand_num):
 	if game.show_scores and hand_num % 10000 == 0:
 		print('\n#{} - {}'.format(hand_num, game.cumulative_scores))
 		game.cumulative_scores = [0] * num_players
+
+
+###############
+#   LOGGING   #
+###############
+
+from q_learning import test_model
+
+
+def do_pre_hand_logging(game, hand_num):
+	# Hand counter
+	game.new_percentage = False
+	hand_percentage = int((hand_num * 100.0) / game.num_hands) + 1
+	if hand_percentage > game.current_percentage:
+		game.new_percentage = True
+		stdout.write('{}Running games [{}%]'.format('\b'*20, hand_percentage))
+		stdout.flush()
+
+	# Show cumulative scores per X number of games
+	show_cummulative_scores(game, hand_num)
+
+
+def do_post_hand_logging(game, model, players, hand_num):
+	# Update cummulative scores
+	for i, player in enumerate(players):
+		game.cumulative_scores[i] += player.points
+
+	# Get winners for current game
+	points = [player.points for player in players]
+	game.update_points_won(points)
+	min_points = min(points)
+	winners = [index for index, point in enumerate(points) if point == min_points]
+	for winner in winners:
+		game.hands_won[winner] += 1
+
+	if game.new_percentage:
+		if game.show_running_scores:
+			row_format = '{:>15}' * game.num_players
+			print(row_format.format(*game.points_won))
+			game.points_won = [0] * game.num_players
+		if game.run_assessment_tests:
+			percentage_points = test_model(game, model)
+			game.percentage_points.append(percentage_points)
+		hand_percentage = int((hand_num * 100.0) / game.num_hands) + 1
+		game.current_percentage = hand_percentage
+
+
+def do_post_game_logging(game, model):
+	if game.show_final_Q:
+		show_Q(model, game)
+
+	if game.show_final_scores:
+		show_final_scores(game)
+
+	if game.run_assessment_tests:
+		# Do final assessment and show total
+		percentage_points = test_model(game, model)
+		game.percentage_points.append(percentage_points)
+		print('\n', game.percentage_points, '\n')
+
+
+def show_percentage_points_graph(game):
+	num_points = len(game.percentage_points)
+	x_step = int(game.num_hands / (num_points - 1))
+	x = range(0, game.num_hands+1, x_step)
+	y = game.percentage_points
+	plt.plot(x, y)
+	plt.ylabel('% of points gained')
+	plt.xlabel('Number of hands played')
+	plt.title('% points earned by Player 0 ({} total players)\n' \
+			  'Deck: {}'.format(game.num_players, game.get_deck_codes()))
+	plt.show()

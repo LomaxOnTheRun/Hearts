@@ -141,7 +141,7 @@ def show_Q(model, game):
 
 def create_network_model(game):
 	model = Sequential()
-	model.add(Dense(20,
+	model.add(Dense(200,
 					activation='relu',
 					input_shape=(3 * len(game.deck),)))
 	model.add(Dense(1, activation='linear'))
@@ -187,3 +187,31 @@ def array_to_state_str(array, game):
 				state_str += deck_codes[index]
 		state_str += '_'
 	return state_str[:-1]
+
+###########
+# TESTING #
+###########
+
+def test_model(game, model):
+	"""Runs all unique combinations of hands once with greedy network, returns single percentage points value"""
+	# Run a single hand for each hand set
+	total_points = [0] * game.num_players
+	for hand_codes in game.unique_hand_codes:
+		points = run_single_greedy_hand(game.num_players, hand_codes, model)
+		total_points = [sum(x) for x in zip(total_points, points)]
+	percentage_points = get_percentage_points(total_points)
+	return percentage_points
+
+
+def run_single_greedy_hand(num_players, hand_codes, model):
+	"""Run a single hand with no learning, returns points"""
+	game = Game(num_players=num_players, greediness=1.0, num_hands=1)
+	players = set_up_game(game)
+	players = game.set_hands(hand_codes)
+	while players[0].hand:
+		trick = start_trick(players, game)
+		action = get_player0_choice(players, game, trick, model)
+		player0_points = finish_trick(players, game, trick, action)
+	reset_player_order(players)
+	points = [player.points for player in players]
+	return points
