@@ -4,21 +4,22 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Activation
 
+from random import random, choice
+
 # For hands_list = [['SJ', 'SQ'], ['S10', 'SK']]
 #
 # Q:
 #	S10_SJSQ_SJ : 0.0
-#	S10_SJSQ_SQ : -1.3
+#	S10_SJSQ_SQ : -11.7
 #	S10_SJ_SJ : 0.0
-#	S10_SQ_SQ : -2.4699999999999998
-#	SK_SJSQ_SJ : -0.11700000000000002
+#	S10_SQ_SQ : -13.0
+#	SK_SJSQ_SJ : -11.7
 #	SK_SJSQ_SQ : 0.0
 #	_SJ_SJ : 0.0
 #	_SQ_SQ : 0.0
 
-
 # Future thoughts:
-# - Maybe instead of the last two, have:
+# - Maybe instead of the last two state groups, have:
 #  -> 0 for N/A
 #  -> -1 for available to play but not played
 #  -> +1 for played
@@ -70,7 +71,6 @@ def get_state_str(trick, players, game):
 	# Actually, since the first card already influences our legal
 	# moves, we can just order all of the cards in the trick to give
 	# us fewer states
-	#return ''.join([card.code for card in trick]) + '_' + ''.join(legal_moves)
 	trick_copy = list(trick)
 	sort_values = [card.sort_value for card in trick_copy]
 	while sort_values:
@@ -137,6 +137,13 @@ def show_Q(model, game):
 # - Hidden layer (? nodes, starting with 20)
 # - 1 linear output, value of that play
 #   - Equivalent of current Q value
+
+# NOTE: For P2 always playing lowest value, P1 should get 36.67% of the points
+#       For P2 always playing highest value, P1 should get 48.33% of the points
+# These values have been calculated by hand
+#
+# For 2 players, 4 cards each, lowest card, fewest % of points is 33.21%
+#  - 10000 not enough, 100000 enough
 
 
 def create_network_model(game):

@@ -354,21 +354,6 @@ def get_ordered_deck_codes(game):
 	return sorted_deck
 
 
-def get_all_unique_combinations(hands_list,cards_per_hand):
-	"""
-	THIS CURRENTLY ONLY WORKS FOR 2 PLAYERS
-	"""
-	unique_hand0 = []  # A list of unique player0 hands
-	unique_hands = []
-	for hands in hands_list:
-		hand0 = list(hands[:cards_per_hand])
-		hand0.sort()
-		if not any([hand0 == unique_hand for unique_hand in unique_hand0]):
-			unique_hand0.append(hand0)
-			unique_hands.append(hands)
-	return unique_hands
-
-
 ###################
 #   DEBUG UTILS   #
 ###################
@@ -410,8 +395,6 @@ def show_cummulative_scores(game, hand_num):
 #   LOGGING   #
 ###############
 
-from q_learning import test_model
-
 
 def do_pre_hand_logging(game, hand_num):
 	# Hand counter
@@ -426,7 +409,7 @@ def do_pre_hand_logging(game, hand_num):
 	show_cummulative_scores(game, hand_num)
 
 
-def do_post_hand_logging(game, model, players, hand_num):
+def do_post_hand_logging(game, model, players, hand_num, test_model):
 	# Update cummulative scores
 	for i, player in enumerate(players):
 		game.cumulative_scores[i] += player.points
@@ -451,7 +434,7 @@ def do_post_hand_logging(game, model, players, hand_num):
 		game.current_percentage = hand_percentage
 
 
-def do_post_game_logging(game, model):
+def do_post_game_logging(game, model, test_model):
 	if game.show_final_Q:
 		show_Q(model, game)
 
@@ -464,6 +447,9 @@ def do_post_game_logging(game, model):
 		game.percentage_points.append(percentage_points)
 		print('\n', game.percentage_points, '\n')
 
+	if game.show_points_won_per_hand:
+		show_best_score_for_hands(points_won_for_hand)
+
 
 def show_percentage_points_graph(game):
 	num_points = len(game.percentage_points)
@@ -473,6 +459,6 @@ def show_percentage_points_graph(game):
 	plt.plot(x, y)
 	plt.ylabel('% of points gained')
 	plt.xlabel('Number of hands played')
-	plt.title('% points earned by Player 0 ({} total players)\n' \
+	plt.title('% points earned by Player 0 ({} total players)\n'
 			  'Deck: {}'.format(game.num_players, game.get_deck_codes()))
 	plt.show()

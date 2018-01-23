@@ -1,16 +1,21 @@
-from game import *
 from q_learning import *
+from game import *
 
 # NOTES:
 # - I'm not shooting the moon for now (more complex), when I do:
 #   - Need to think of how to reward / punish (-26*4 points at end?)
 #   - Keep track of more history (other player scores / previously tricks)
 # - I'm not passing cards across at the start of hands (more complex)
+#   - Once main network trained, could train secondary network for this
 
 # FUTURE THOUGHTS:
-# - REMOVE Q?
-# - CALCULATE BY HAND BEST ODDS OF WINNING WITH SUBSET OF CARDS, SEE HOW CLOSE NET GETS
+# - TRY PLAYING WITH 3+ PLAYERS
+# - ADD Learner OBJECT FOR Q-LEARNING / NEURAL NETWORK
+# - SHOW NEWTORK STRUCTURE ON GRAPHS
 # - TRAIN NETWORK WITH SUBSETS OF CARDS, AND EXPAND TO FILL ARRAYS WITH ZEROS
+# - LOOK INTO COMBINING LAST 2 SETS OF INPUTS (+1 FOR PLAYED, -1 FOR KEPT IN HAND)
+# - TRY MULTIPLE HIDDEN LAYERS
+# - LOOK INTO OTHER OPTIMISATIONS (E.G. L1 / L2)
 
 
 def play_hand(game, model):
@@ -48,16 +53,16 @@ def run_game(game):
 	for hand_num in range(game.num_hands):
 		do_pre_hand_logging(game, hand_num)
 		players = play_hand(game, model)
-		do_post_hand_logging(game, model, players, hand_num)
-	do_post_game_logging(game, model)
+		do_post_hand_logging(game, model, players, hand_num, test_model)
+	do_post_game_logging(game, model, test_model)
 
 	return game, model
 
 
-game = Game(num_players=2, num_hands=100)
+game = Game(num_players=3, num_hands=10)
 profile_game = False
-#game.show_final_Q = True
 game.run_assessment_tests = True
+#game.show_final_Q = True
 
 # Create neural network
 model = create_network_model(game)
@@ -71,13 +76,3 @@ else:
 	# Show graph of points earned
 	if game.percentage_points:
 		show_percentage_points_graph(game)
-
-#if game.show_points_won_per_hand:
-#	show_best_score_for_hands(points_won_for_hand)
-
-# NOTE: For P2 always playing lowest value, P1 should get 36.67% of the points
-#       For P2 always playing highest value, P1 should get 48.33% of the points
-# These values have been calculated by hand
-#
-# For 2 players, 4 cards each, lowest card, fewest % of points is 33.21%
-#  - 10000 not enough, 100000 enough
