@@ -61,7 +61,7 @@ def run_game(game):
 	return game, model
 
 
-game = Game(num_players=3, num_hands=10)
+game = Game(num_players=4, num_hands=200)
 profile_game = False
 game.run_assessment_tests = True
 #game.show_final_Q = True
