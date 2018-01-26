@@ -11,7 +11,7 @@ VALUES_FULL = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 SUITS = ['H']
 #VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 #SUITS = ['S']
-#VALUES = ['5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+#VALUES = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 VALUES = ['9', '10', 'J', 'Q', 'K', 'A']
 
 
@@ -45,7 +45,10 @@ class Game:
 		self.show_final_scores = True
 		self.show_points_won_per_hand = False
 		# Testing stuff
-		self.unique_hand_codes = self.get_unique_hand_codes()
+		if self.num_players == 2:
+			self.unique_hand_codes = self.get_unique_hand_codes()
+		else:
+			self.unique_hand_codes = self.get_unique_hand_codes_3()
 		self.run_assessment_tests = False
 		# Percentage tracker
 		self.current_percentage = 0
@@ -71,7 +74,10 @@ class Game:
 				player.hand.append(card)
 				self.deck.append(card)
 		set_first_lead(players, self)
-		self.unique_hands = self.get_unique_hand_codes()
+		if self.num_players == 2:
+			self.unique_hand_codes = self.get_unique_hand_codes()
+		else:
+			self.unique_hand_codes = self.get_unique_hand_codes_3()
 		return players
 
 	def update_points_won(self, points):
@@ -88,6 +94,24 @@ class Game:
 		unique_hands_2 = [hand for hand in unique_hands]
 		unique_hands_2.reverse()
 		return list(zip(unique_hands, unique_hands_2))
+
+	def get_unique_hand_codes_3(self):
+		deck_codes = self.get_deck_codes()
+		num_cards_in_hand = int(len(deck_codes) / self.num_players)
+		unique_hands = []
+		unique_player0_hands = list(combinations(deck_codes, num_cards_in_hand))
+		for player0_hand in unique_player0_hands:
+			deck_codes = self.get_deck_codes()
+			for card in player0_hand:
+				deck_codes.remove(card)
+			unique_player1_hands = list(combinations(deck_codes, num_cards_in_hand))
+			for player1_hand in unique_player1_hands:
+				reduced_deck = [card for card in deck_codes]
+				for card in player1_hand:
+					reduced_deck.remove(card)
+				player2_hand = tuple(reduced_deck)
+				unique_hands.append((player0_hand, player1_hand, player2_hand))
+		return unique_hands
 
 
 class Card:
