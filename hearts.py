@@ -1,6 +1,8 @@
 from q_learning import *
 from game import *
 
+from time import time
+
 # NOTES:
 # - I'm not shooting the moon for now (more complex), when I do:
 #   - Need to think of how to reward / punish (-26*4 points at end?)
@@ -72,7 +74,9 @@ if profile_game:
 	import cProfile
 	cProfile.run('run_game(game)')
 else:
+	start_time = time()
 	game, model = run_game(game)
+	print('Time taken: %0.1fs' % (time() - start_time))
 	# Show graph of points earned
 	if game.percentage_points:
 		show_percentage_points_graph(game)
