@@ -8,11 +8,13 @@ import matplotlib.pyplot as plt
 SUITS_FULL = ['C', 'D', 'S', 'H']
 VALUES_FULL = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 
-SUITS = ['H']
+SUITS = ['H', 'S']
 #VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 #SUITS = ['S']
-VALUES = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A']
-#VALUES = ['9', '10', 'J', 'Q', 'K', 'A']
+#VALUES = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+VALUES = ['9', '10', 'J', 'Q', 'K', 'A']
+# VALUES = ['J', 'Q', 'K', 'A']
+# VALUES = VALUES_FULL
 
 
 class Game:
@@ -44,17 +46,20 @@ class Game:
 		self.show_running_scores = False
 		self.show_final_scores = True
 		self.show_points_won_per_hand = False
+		# Percentage tracker
+		self.current_percentage = 0
+		self.new_percentage = False
 		# Testing stuff
 		if self.num_players == 2:
 			self.unique_hand_codes = self.get_unique_hand_codes_2()
 		elif self.num_players == 3:
-			self.unique_hand_codes = self.get_unique_hand_codes_3()
+			# self.unique_hand_codes = self.get_unique_hand_codes_3()
+			pass
 		else:
-			self.unique_hand_codes = self.get_unique_hand_codes_4()
+			# DO NOT USE THIS, EVEN WITH 4 CARDS EACH, IT'S A MILLION COMBINATIONS
+			# self.unique_hand_codes = self.get_unique_hand_codes_4()
+			pass
 		self.run_assessment_tests = False
-		# Percentage tracker
-		self.current_percentage = 0
-		self.new_percentage = False
 
 	def set_hands(self, hands_list):
 		"""
@@ -79,9 +84,12 @@ class Game:
 		if self.num_players == 2:
 			self.unique_hand_codes = self.get_unique_hand_codes_2()
 		elif self.num_players == 3:
-			self.unique_hand_codes = self.get_unique_hand_codes_3()
+			# self.unique_hand_codes = self.get_unique_hand_codes_3()
+			pass
 		else:
-			self.unique_hand_codes = self.get_unique_hand_codes_4()
+			# DO NOT USE THIS, EVEN WITH 4 CARDS EACH, IT'S A MILLION COMBINATIONS
+			# self.unique_hand_codes = self.get_unique_hand_codes_4()
+			pass
 		return players
 
 	def update_points_won(self, points):
@@ -99,46 +107,47 @@ class Game:
 		unique_hands_2.reverse()
 		return list(zip(unique_hands, unique_hands_2))
 
-	def get_unique_hand_codes_3(self):
-		deck_codes = self.get_deck_codes()
-		num_cards_in_hand = int(len(deck_codes) / self.num_players)
-		unique_hands = []
-		unique_player0_hands = list(combinations(deck_codes, num_cards_in_hand))
-		for player0_hand in unique_player0_hands:
-			deck_codes = self.get_deck_codes()
-			for card in player0_hand:
-				deck_codes.remove(card)
-			unique_player1_hands = list(combinations(deck_codes, num_cards_in_hand))
-			for player1_hand in unique_player1_hands:
-				reduced_deck = [card for card in deck_codes]
-				for card in player1_hand:
-					reduced_deck.remove(card)
-				player2_hand = tuple(reduced_deck)
-				unique_hands.append((player0_hand, player1_hand, player2_hand))
-		return unique_hands
+	# def get_unique_hand_codes_3(self):
+	# 	deck_codes = self.get_deck_codes()
+	# 	num_cards_in_hand = int(len(deck_codes) / self.num_players)
+	# 	unique_hands = []
+	# 	unique_player0_hands = list(combinations(deck_codes, num_cards_in_hand))
+	# 	for player0_hand in unique_player0_hands:
+	# 		deck_codes = self.get_deck_codes()
+	# 		for card in player0_hand:
+	# 			deck_codes.remove(card)
+	# 		unique_player1_hands = list(combinations(deck_codes, num_cards_in_hand))
+	# 		for player1_hand in unique_player1_hands:
+	# 			reduced_deck = [card for card in deck_codes]
+	# 			for card in player1_hand:
+	# 				reduced_deck.remove(card)
+	# 			player2_hand = tuple(reduced_deck)
+	# 			unique_hands.append((player0_hand, player1_hand, player2_hand))
+	# 	return unique_hands
 
-	def get_unique_hand_codes_4(self):
-		deck_codes = self.get_deck_codes()
-		num_cards_in_hand = int(len(deck_codes) / self.num_players)
-		unique_hands = []
-		unique_player0_hands = list(combinations(deck_codes, num_cards_in_hand))
-		for player0_hand in unique_player0_hands:
-			deck_codes = self.get_deck_codes()
-			for card in player0_hand:
-				deck_codes.remove(card)
-			unique_player1_hands = list(combinations(deck_codes, num_cards_in_hand))
-			for player1_hand in unique_player1_hands:
-				reduced_deck = [card for card in deck_codes]
-				for card in player1_hand:
-					reduced_deck.remove(card)
-				unique_player2_hands = list(combinations(reduced_deck, num_cards_in_hand))
-				for player2_hand in unique_player2_hands:
-					final_cards = [card for card in reduced_deck]
-					for card in player2_hand:
-						final_cards.remove(card)
-					player3_hand = tuple(final_cards)
-				unique_hands.append((player0_hand, player1_hand, player2_hand, player3_hand))
-		return unique_hands
+	# def get_unique_hand_codes_4(self):
+	# 	"""DO NOT USE THIS, EVEN 4 CARDS PER PERSON HAS A MILLION COMBINATIONS"""
+	# 	deck_codes = self.get_deck_codes()
+	# 	num_cards_in_hand = int(len(deck_codes) / self.num_players)
+	# 	unique_hands = []
+	# 	unique_player0_hands = list(combinations(deck_codes, num_cards_in_hand))
+	# 	for player0_hand in unique_player0_hands:
+	# 		deck_codes = self.get_deck_codes()
+	# 		for card in player0_hand:
+	# 			deck_codes.remove(card)
+	# 		unique_player1_hands = list(combinations(deck_codes, num_cards_in_hand))
+	# 		for player1_hand in unique_player1_hands:
+	# 			reduced_deck = [card for card in deck_codes]
+	# 			for card in player1_hand:
+	# 				reduced_deck.remove(card)
+	# 			unique_player2_hands = list(combinations(reduced_deck, num_cards_in_hand))
+	# 			for player2_hand in unique_player2_hands:
+	# 				final_cards = [card for card in reduced_deck]
+	# 				for card in player2_hand:
+	# 					final_cards.remove(card)
+	# 				player3_hand = tuple(final_cards)
+	# 			unique_hands.append((player0_hand, player1_hand, player2_hand, player3_hand))
+	# 	return unique_hands
 
 
 class Card:

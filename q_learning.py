@@ -6,6 +6,11 @@ from keras.layers import Dense, Activation
 
 from random import random, choice
 
+import os
+
+# Get rid of annoying Keras logging
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 # For hands_list = [['SJ', 'SQ'], ['S10', 'SK']]
 #
 # Q:
@@ -146,14 +151,14 @@ def show_Q(model, game):
 #  - 10000 not enough, 100000 enough
 
 
-def create_network_model(game):
+def create_network_model(game, optimizer='sgd', loss='mse'):  # Not sure about these
 	model = Sequential()
 	model.add(Dense(200,
 					activation='relu',
 					input_shape=(3 * len(game.deck),)))
 	model.add(Dense(1, activation='linear'))
-	model.compile(optimizer='sgd',		# Not sure about this
-				  loss='mse',			# Not sure about this either
+	model.compile(optimizer=optimizer,
+				  loss=loss,
 				  metrics=['accuracy'])
 	return model
 

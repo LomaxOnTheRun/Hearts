@@ -2,6 +2,7 @@ from q_learning import *
 from game import *
 
 from time import time
+from keras.models import model_from_json
 
 # NOTES:
 # - I'm not shooting the moon for now (more complex), when I do:
@@ -11,6 +12,7 @@ from time import time
 #   - Once main network trained, could train secondary network for this
 
 # FUTURE THOUGHTS:
+# - ADD DECORATORS TO TIME FUNCTIONS
 # - TRY PLAYING WITH 3+ PLAYERS
 # - ADD Learner OBJECT FOR Q-LEARNING / NEURAL NETWORK
 # - SHOW NEWTORK STRUCTURE ON GRAPHS
@@ -61,13 +63,63 @@ def run_game(game):
 	return game, model
 
 
-game = Game(num_players=4, num_hands=200)
+def get_model_name(model, game):
+	"""Get name of save files from game and model structure"""
+
+	# Add game info
+	name_sections = [f'{game.num_players}P']
+	name_sections.append(''.join(SUITS))
+	name_sections.append(''.join(VALUES))
+
+	for layer in model.get_config():
+		layer_type = layer['config']['name'].split('_')[0]
+		layer_size = layer['config']['units']
+		activation = layer['config']['activation']
+		name_sections.append(f'{layer_type}{layer_size}{activation}')
+
+	return '_'.join(name_sections)
+
+
+def save_model(model, game):
+	name = get_model_name(model, game)
+	model_json = model.to_json()
+	with open(f'model_saves/{name}.json', 'w') as json_file:
+		json_file.write(model_json)
+	model.save_weights(f'model_saves/{name}.h5')
+	print('Model saved')
+
+
+def load_model(model):
+	name = get_model_name(model, game)
+	try:
+		json_file = open(f'model_saves/{name}.json', 'r')
+		loaded_model_json = json_file.read()
+		json_file.close()
+		model = model_from_json(loaded_model_json)
+		model.load_weights(f'model_saves/{name}.h5')
+		print('Model loaded')
+	except FileNotFoundError:
+		print(f'No pre-existing model found for {name!r},' \
+		 	   ' using newly created model instead')
+
+	return model
+
+
+game = Game(num_players=2, num_hands=10000)
 profile_game = False
-game.run_assessment_tests = True
+game.run_assessment_tests = False
 #game.show_final_Q = True
+use_previous_model = True
 
 # Create neural network
-model = create_network_model(game)
+optimizer='sgd'
+loss='mse'
+
+model = create_network_model(game, optimizer=optimizer, loss=loss)
+if 'use_previous_model' in locals() and use_previous_model:
+	model = load_model(model)
+	model.compile(optimizer=optimizer, loss=loss)
+
 
 # Run game
 if profile_game:
@@ -80,3 +132,5 @@ else:
 	# Show graph of points earned
 	if game.percentage_points:
 		show_percentage_points_graph(game)
+	# Save model
+	save_model(model, game)
