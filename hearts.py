@@ -109,7 +109,7 @@ game = Game(num_players=2, num_hands=10000)
 profile_game = False
 game.run_assessment_tests = False
 #game.show_final_Q = True
-use_previous_model = True
+#use_previous_model = True
 
 # Create neural network
 optimizer='sgd'
@@ -133,4 +133,4 @@ else:
 	if game.percentage_points:
 		show_percentage_points_graph(game)
 	# Save model
-	save_model(model, game)
+	# save_model(model, game)
