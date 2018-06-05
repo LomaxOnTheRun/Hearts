@@ -109,7 +109,8 @@ game = Game(num_players=2, num_hands=10000)
 profile_game = False
 game.run_assessment_tests = False
 #game.show_final_Q = True
-use_previous_model = True
+#use_previous_model = True
+#save_model = True
 
 # Create neural network
 optimizer='sgd'
@@ -129,8 +130,8 @@ else:
 	start_time = time()
 	game, model = run_game(game)
 	print('Time taken: %0.1fs' % (time() - start_time))
-	# Show graph of points earned
 	if game.percentage_points:
+		# Show graph of points earned
 		show_percentage_points_graph(game)
-	# Save model
-	save_model(model, game)
+	if save_model:
+		save_model(model, game)

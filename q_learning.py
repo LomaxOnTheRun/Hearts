@@ -82,7 +82,11 @@ def get_state_str(trick, players, game):
 		min_index = sort_values.index(min(sort_values))
 		trick_copy.append(trick_copy.pop(min_index))
 		del sort_values[min_index]
-	return ''.join([card.code for card in trick_copy]) + '_' + ''.join(legal_moves)
+	state_str = \
+		''.join([card.code for card in trick_copy]) + '_' + \
+		''.join(legal_moves) + '_' + \
+		''.join([card.code for card in game.cards_in_other_hands])
+	return state_str
 
 
 def get_reward(player0_points):
@@ -155,7 +159,7 @@ def create_network_model(game, optimizer='sgd', loss='mse'):  # Not sure about t
 	model = Sequential()
 	model.add(Dense(200,
 					activation='relu',
-					input_shape=(3 * len(game.deck),)))
+					input_shape=(4 * len(game.deck),)))
 	model.add(Dense(1, activation='linear'))
 	model.compile(optimizer=optimizer,
 				  loss=loss,
@@ -166,7 +170,7 @@ def create_network_model(game, optimizer='sgd', loss='mse'):  # Not sure about t
 def get_Q_state(Q_key, game):
 	Q_state_array = state_str_to_array(Q_key, game)
 	Q_state = np.array(Q_state_array)
-	Q_state = Q_state.reshape(1, 3 * len(game.deck))
+	Q_state = Q_state.reshape(1, 4 * len(game.deck))
 	return Q_state
 
 

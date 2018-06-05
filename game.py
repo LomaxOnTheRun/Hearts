@@ -23,8 +23,9 @@ class Game:
 		# User selected info
 		self.num_players = num_players
 		self.num_hands = num_hands
-		self.deck = create_deck()
+		self.deck = self.create_deck()
 		self.hands_list = None
+		self.cards_in_other_hands = self.create_deck()
 		# Learning hyperparameters
 		self.learning_rate = learning_rate
 		self.discount_factor = discount_factor
@@ -60,6 +61,10 @@ class Game:
 			# self.unique_hand_codes = self.get_unique_hand_codes_4()
 			pass
 		self.run_assessment_tests = False
+
+	def create_deck(self):
+		"""Creates a deck using the SUITS and VALUES"""
+		return [Card(suit, value_str) for suit in SUITS for value_str in VALUES]
 
 	def set_hands(self, hands_list):
 		"""
@@ -161,6 +166,12 @@ class Card:
 	def __repr__(self):
 		return self.code
 
+	def __eq__(self, other):
+		"""Two cards are equal if their codes match"""
+		if type(other) is type(self):
+			return self.code == other.code
+		return False
+
 	def get_value(self, value_str):
 		royals = {'J': 11, 'Q': 12, 'K': 13, 'A': 14}
 		if value_str in royals:
@@ -253,11 +264,22 @@ class Player:
 			del sort_values[min_index]
 
 
+def remove_played_cards(game, played_cards):
+	"""Removes cards from list of cards in others' hands"""
+	for card in played_cards:
+		if card in game.cards_in_other_hands:
+			game.cards_in_other_hands.remove(card)
+
+
 def set_up_game(game):
+	game.cards_in_other_hands = game.create_deck()
 	players = shuffle_and_deal_cards(game)
 	if game.hands_list:
 		players = game.set_hands(game.hands_list)
 	set_first_lead(players, game)
+	# Remove all cards in agent's hand from game.cards_in_other_hands
+	player0 = get_player(players, 0)
+	remove_played_cards(game, player0.hand)
 	return players
 
 
@@ -266,6 +288,7 @@ def start_trick(players, game):
 	put_players_in_turn_order(players)
 	players_before, _, _ = split_players(players)
 	trick = play_trick_for_players(players_before, game, [])
+	remove_played_cards(game, trick)
 	return trick
 
 
@@ -275,6 +298,7 @@ def finish_trick(players, game, trick, player0_choice):
 	player0_card = player0.play(player0_choice)
 	trick.append(player0_card)
 	trick = play_trick_for_players(players_after, game, trick)
+	remove_played_cards(game, trick)
 	update_hearts_broken(game, trick)
 	player0_points = give_trick_points(players, trick)
 	if game.show_play:
@@ -305,11 +329,6 @@ def set_first_lead(players, game):
 		if lowest_card in player.get_hand_codes():
 			player.lead = True
 			break
-
-
-def create_deck():
-	"""Creates a deck using the SUITS and VALUES"""
-	return [Card(suit, value_str) for suit in SUITS for value_str in VALUES]
 
 
 def get_lowest_card(game):
