@@ -105,7 +105,7 @@ def load_model(model):
 	return model
 
 
-game = Game(num_players=2, num_hands=10000)
+game = Game(num_players=3, num_hands=10000)
 profile_game = False
 game.run_assessment_tests = False
 #game.show_final_Q = True
