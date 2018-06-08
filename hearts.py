@@ -20,6 +20,7 @@ from keras.models import model_from_json
 # - LOOK INTO COMBINING LAST 2 SETS OF INPUTS (+1 FOR PLAYED, -1 FOR KEPT IN HAND)
 # - TRY MULTIPLE HIDDEN LAYERS
 # - LOOK INTO OTHER OPTIMISATIONS (E.G. L1 / L2)
+# - PRACTICE ON RUNS IT FAILS AT
 
 
 def play_hand(game, model):
@@ -105,12 +106,12 @@ def load_model(model):
 	return model
 
 
-game = Game(num_players=3, num_hands=10000)
+game = Game(num_players=3, num_hands=1000000)
 profile_game = False
 game.run_assessment_tests = False
 #game.show_final_Q = True
-#use_previous_model = True
-#save_model = True
+use_previous_model = True
+do_save_model = True
 
 # Create neural network
 optimizer='sgd'
@@ -133,5 +134,5 @@ else:
 	if game.percentage_points:
 		# Show graph of points earned
 		show_percentage_points_graph(game)
-	if save_model:
+	if do_save_model:
 		save_model(model, game)
