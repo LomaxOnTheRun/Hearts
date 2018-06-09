@@ -8,12 +8,12 @@ import matplotlib.pyplot as plt
 SUITS_FULL = ['C', 'D', 'S', 'H']
 VALUES_FULL = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 
-SUITS = ['H', 'S']
+SUITS = ['S']
 #VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 #SUITS = ['S']
 #VALUES = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A']
-VALUES = ['9', '10', 'J', 'Q', 'K', 'A']
-# VALUES = ['J', 'Q', 'K', 'A']
+#VALUES = ['9', '10', 'J', 'Q', 'K', 'A']
+VALUES = ['J', 'Q', 'K', 'A']
 # VALUES = VALUES_FULL
 
 
@@ -101,6 +101,9 @@ class Game:
 	def get_total_points_in_deck(self):
 		points = [card.points for card in self.deck]
 		return sum(points)
+
+	def get_player_hands(self):
+		return [player.get_hand_codes for player in self.players]
 
 	def get_unique_hand_codes_2(self):
 		"""Split a set of cards into tuples of hands - THIS ONLY WORKS FOR 2 PLAYERS"""
