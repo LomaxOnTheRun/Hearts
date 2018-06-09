@@ -8,12 +8,12 @@ import matplotlib.pyplot as plt
 SUITS_FULL = ['C', 'D', 'S', 'H']
 VALUES_FULL = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 
-SUITS = ['H', 'S']
+SUITS = ['S']
 #VALUES = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 #SUITS = ['S']
 #VALUES = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A']
-VALUES = ['9', '10', 'J', 'Q', 'K', 'A']
-# VALUES = ['J', 'Q', 'K', 'A']
+#VALUES = ['9', '10', 'J', 'Q', 'K', 'A']
+VALUES = ['J', 'Q', 'K', 'A']
 # VALUES = VALUES_FULL
 
 
@@ -97,6 +97,13 @@ class Game:
 
 	def get_deck_codes(self):
 		return [card.code for card in self.deck]
+
+	def get_total_points_in_deck(self):
+		points = [card.points for card in self.deck]
+		return sum(points)
+
+	def get_player_hands(self):
+		return [player.get_hand_codes for player in self.players]
 
 	def get_unique_hand_codes_2(self):
 		"""Split a set of cards into tuples of hands - THIS ONLY WORKS FOR 2 PLAYERS"""
@@ -487,9 +494,9 @@ def do_post_hand_logging(game, model, players, hand_num, test_model):
 			row_format = '{:>15}' * game.num_players
 			print(row_format.format(*game.points_won))
 			game.points_won = [0] * game.num_players
-		if game.run_assessment_tests:
-			percentage_points = test_model(game, model)
-			game.percentage_points.append(percentage_points)
+#		if game.run_assessment_tests:
+#			percentage_points = test_model(game, model)
+#			game.percentage_points.append(percentage_points)
 		hand_percentage = int((hand_num * 100.0) / game.num_hands) + 1
 		game.current_percentage = hand_percentage
 
@@ -503,9 +510,9 @@ def do_post_game_logging(game, model, test_model):
 
 	if game.run_assessment_tests:
 		# Do final assessment and show total
-		percentage_points = test_model(game, model)
-		game.percentage_points.append(percentage_points)
-		print('\n', game.percentage_points, '\n')
+		percentage_points = test_model(game, model, num_hands=1000)
+		# game.percentage_points.append(percentage_points)
+		# print(f'\n{percentage_points}\n')
 
 	if game.show_points_won_per_hand:
 		show_best_score_for_hands(points_won_for_hand)

@@ -20,6 +20,7 @@ from keras.models import model_from_json
 # - LOOK INTO COMBINING LAST 2 SETS OF INPUTS (+1 FOR PLAYED, -1 FOR KEPT IN HAND)
 # - TRY MULTIPLE HIDDEN LAYERS
 # - LOOK INTO OTHER OPTIMISATIONS (E.G. L1 / L2)
+# - PRACTICE ON RUNS IT FAILS AT
 
 
 def play_hand(game, model):
@@ -105,9 +106,9 @@ def load_model(model):
 	return model
 
 
-game = Game(num_players=2, num_hands=10000)
+game = Game(num_players=2, num_hands=100)
 profile_game = False
-game.run_assessment_tests = False
+game.run_assessment_tests = True
 #game.show_final_Q = True
 #use_previous_model = True
 

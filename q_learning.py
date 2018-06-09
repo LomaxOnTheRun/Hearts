@@ -204,26 +204,62 @@ def array_to_state_str(array, game):
 # TESTING #
 ###########
 
-def test_model(game, model):
-	"""Runs all unique combinations of hands once with greedy network, returns single percentage points value"""
-	# Run a single hand for each hand set
+# def test_model(game, model):
+# 	"""Runs all unique combinations of hands once with greedy network, returns single percentage points value"""
+# 	# Run a single hand for each hand set
+# 	total_points = [0] * game.num_players
+# 	for hand_codes in game.unique_hand_codes:
+# 		points = run_single_greedy_hand(game.num_players, model, hand_codes)
+# 		total_points = [sum(x) for x in zip(total_points, points)]
+# 	percentage_points = get_percentage_points(total_points)
+# 	return percentage_points
+
+
+def test_model(game, model, num_hands):
+	"""Plays random starting hands (based on existing cards in play), returns percentage of points picked up"""
 	total_points = [0] * game.num_players
-	for hand_codes in game.unique_hand_codes:
-		points = run_single_greedy_hand(game.num_players, hand_codes, model)
+	losing_hands = set()
+	winning_hands = set()
+	for hand in range(num_hands):
+		points, initial_hands = run_single_greedy_hand(game.num_players, model)
 		total_points = [sum(x) for x in zip(total_points, points)]
+		# Log losing starting hands
+		if points[0] > 0:
+			losing_hands.add(initial_hands)
+		else:
+			winning_hands.add(initial_hands)
 	percentage_points = get_percentage_points(total_points)
+	print('\n    Test point gained:')
+	print(f'    {percentage_points}%  ({total_points[0]} / {game.get_total_points_in_deck() * num_hands})\n')
+
+	losing_hands = list(losing_hands)
+	losing_hands.sort()
+	print('Losing hands:')
+	for hand in losing_hands:
+		print(hand)
+	print()
+
+	winning_hands = list(winning_hands)
+	winning_hands.sort()
+	print('Winning hands:')
+	for hand in winning_hands:
+		print(hand)
+	print()
+
 	return percentage_points
 
 
-def run_single_greedy_hand(num_players, hand_codes, model):
+def run_single_greedy_hand(num_players, model, hand_codes=None):
 	"""Run a single hand with no learning, returns points"""
 	game = Game(num_players=num_players, greediness=1.0, num_hands=1)
 	players = set_up_game(game)
-	players = game.set_hands(hand_codes)
+	initial_hands = tuple([tuple(player.get_hand_codes()) for player in players])
+	if hand_codes:
+		players = game.set_hands(hand_codes)
 	while players[0].hand:
 		trick = start_trick(players, game)
 		action = get_player0_choice(players, game, trick, model)
 		player0_points = finish_trick(players, game, trick, action)
 	reset_player_order(players)
 	points = [player.points for player in players]
-	return points
+	return points, initial_hands
